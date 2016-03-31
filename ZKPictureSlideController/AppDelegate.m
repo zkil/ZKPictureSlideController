@@ -7,7 +7,7 @@
 //
 
 #import "AppDelegate.h"
-
+#import "ZKPictureSlideController.h"
 @interface AppDelegate ()
 
 @end
@@ -16,7 +16,14 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
+    NSMutableArray *paths = [NSMutableArray new];
+    for (int i = 0; i < 5; i++) {
+        NSString *path = [[NSBundle mainBundle]pathForResource:[NSString stringWithFormat:@"%d",i] ofType:@"jpg"];
+        [paths addObject:path];
+    }
+    
+    ZKPictureSlideController *pictureSlideC = [[ZKPictureSlideController alloc]initWithPicturePaths:paths atShowIndex:0];
+    self.window.rootViewController = pictureSlideC;
     return YES;
 }
 
