@@ -14,6 +14,8 @@
     NSMutableArray *_imageViews;
     NSMutableArray *_contentScrollViews;
     CGFloat lastOffsetX;
+    
+    UIActivityIndicatorView *_activityIndicatorView;
 }
 @end
 
@@ -62,6 +64,8 @@
 
 
 -(void)createUI{
+    
+    
     self.containerScrollView.contentSize = CGSizeMake(self.view.frame.size.width * self.paths.count, self.view.frame.size.height);
     
      _imageViews = [NSMutableArray new];
@@ -114,6 +118,10 @@
         imageView.userInteractionEnabled = YES;
         
     }
+    
+    _activityIndicatorView = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    _activityIndicatorView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+    [self.view addSubview:_activityIndicatorView];
 }
 
 -(void)createImageByPaths{
@@ -212,6 +220,7 @@
 
 
 -(void)saveFromPath:(NSString *)path{
+    [_activityIndicatorView startAnimating];
     ALAssetsLibrary *library = [[ALAssetsLibrary alloc]init];
     if ([path hasSuffix:@".png"] || [path hasSuffix:@".jpg"]) {
         UIImage *image = [UIImage imageWithContentsOfFile:path];
@@ -222,6 +231,7 @@
                 [self showAlertWithTitle:@"保存失敗" andMsg:nil];
         
             }
+            [_activityIndicatorView stopAnimating];
         }];
         
     }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
