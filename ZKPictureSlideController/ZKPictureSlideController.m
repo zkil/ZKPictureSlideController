@@ -11,7 +11,7 @@
 
 @interface ZKPictureSlideController ()<UIActionSheetDelegate>
 {
-    NSMutableArray *_imageViews;
+    NSMutableArray *_contentViews;
     NSMutableArray *_contentScrollViews;
     CGFloat lastOffsetX;
     
@@ -31,15 +31,6 @@
     return self;
 }
 
--(id)initWithImages:(NSArray *)images atShowIndex:(NSInteger)index{
-    if (self = [super init]) {
-        _images = images;
-        if (index < images.count) {
-             _showIndex = index;
-        }
-    }
-    return self;
-}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -68,12 +59,12 @@
     
     self.containerScrollView.contentSize = CGSizeMake(self.view.frame.size.width * self.paths.count, self.view.frame.size.height);
     
-     _imageViews = [NSMutableArray new];
+     _contentViews = [NSMutableArray new];
     _contentScrollViews = [NSMutableArray new];
     
-    [self createImageByPaths];
     
-    for (int i = 0; i < self.images.count; i++) {
+    for (int i = 0; i < self.paths.count; i++) {
+        NSString *path = self.paths[i];
         
         UIScrollView *contentScrollView = [[UIScrollView alloc]init];
         contentScrollView.tag = 1000 + i;
@@ -84,38 +75,47 @@
         contentScrollView.minimumZoomScale = 1;
         contentScrollView.maximumZoomScale = 3;
         [self.containerScrollView addSubview:contentScrollView];
+        [_contentScrollViews addObject:contentScrollView];
         
         UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
         tapGestureRecognizer.numberOfTapsRequired = 2;
         [contentScrollView addGestureRecognizer:tapGestureRecognizer];
-        
         UILongPressGestureRecognizer *longPressGR = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(showSaveAlert:)];
         [contentScrollView addGestureRecognizer:longPressGR];
         
-        UIImage *image = self.images[i];
-        UIImageView *imageView = [[UIImageView alloc]initWithImage:image];
+        
+        UIView *contentView;
+        
+        if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
+            UIImage *image = [UIImage imageWithContentsOfFile:path];
+            UIImageView *imageView = [[UIImageView alloc]initWithImage:image];
+            imageView.userInteractionEnabled = YES;
+            CGFloat imgWidth = image.size.width;
+            CGFloat imgHeight = image.size.height;
+            CGFloat ratio = imgWidth/imgHeight;
+            imageView.frame = CGRectMake(0, 0, self.view.frame.size.width,self.view.frame.size.width/ratio);
+            imageView.contentMode = UIViewContentModeScaleAspectFit;
+            if (imgWidth > imgHeight || imageView.frame.size.height < self.view.frame.size.height) {
+                imageView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+            }
+            contentScrollView.contentSize = CGSizeMake(imageView.frame.size.width, imageView.frame.size.height);
+            [contentScrollView addSubview:imageView];
+            contentView = imageView;
+        }
+        
+        
       
     
-        CGFloat imgWidth = image.size.width;
-        CGFloat imgHeight = image.size.height;
-        CGFloat ratio = imgWidth/imgHeight;
-        imageView.frame = CGRectMake(0, 0, self.view.frame.size.width,self.view.frame.size.width/ratio);
-        imageView.contentMode = UIViewContentModeScaleAspectFit;
-        if (imgWidth > imgHeight || imageView.frame.size.height < self.view.frame.size.height) {
-            imageView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
-        }
-        contentScrollView.contentSize = CGSizeMake(imageView.frame.size.width, imageView.frame.size.height);
-        [contentScrollView addSubview:imageView];
-        [_contentScrollViews addObject:contentScrollView];
+        [_contentViews addObject:contentView];
       
         
         CGPoint offset = _containerScrollView.contentOffset;
         offset.x = self.view.frame.size.width * self.showIndex;
         [self.containerScrollView setContentOffset:offset];
         
-          [_imageViews addObject:imageView];
         
-        imageView.userInteractionEnabled = YES;
+        
+        
         
     }
     
@@ -124,17 +124,7 @@
     [self.view addSubview:_activityIndicatorView];
 }
 
--(void)createImageByPaths{
-    if (self.paths == nil) {
-        return;
-    }
-    NSMutableArray *imageArray = [NSMutableArray new];
-    for (NSString *path in self.paths) {
-        UIImage *image = [UIImage imageWithContentsOfFile:path];
-        [imageArray addObject:image];
-    }
-    self.images = imageArray;
-}
+
 
 - (NSInteger)currentIndex{
     return  _containerScrollView.contentOffset.x / self.view.frame.size.width;
@@ -157,7 +147,7 @@
     if (scrollView != _containerScrollView) {
         
         NSInteger index = scrollView.tag - 1000;
-        imageView = _imageViews[index];
+        imageView = _contentViews[index];
     }
     return imageView;
 }
