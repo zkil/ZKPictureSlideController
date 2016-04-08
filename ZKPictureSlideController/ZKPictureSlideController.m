@@ -7,8 +7,9 @@
 //
 
 #import "ZKPictureSlideController.h"
+#import <AssetsLibrary/AssetsLibrary.h>
 
-@interface ZKPictureSlideController ()
+@interface ZKPictureSlideController ()<UIActionSheetDelegate>
 {
     NSMutableArray *_imageViews;
     NSMutableArray *_contentScrollViews;
@@ -42,6 +43,9 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor blackColor];
+   
+    
+    
     
     [self createUI];
 }
@@ -80,6 +84,9 @@
         UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
         tapGestureRecognizer.numberOfTapsRequired = 2;
         [contentScrollView addGestureRecognizer:tapGestureRecognizer];
+        
+        UILongPressGestureRecognizer *longPressGR = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(showSaveAlert:)];
+        [contentScrollView addGestureRecognizer:longPressGR];
         
         UIImage *image = self.images[i];
         UIImageView *imageView = [[UIImageView alloc]initWithImage:image];
@@ -121,6 +128,10 @@
     self.images = imageArray;
 }
 
+- (NSInteger)currentIndex{
+    return  _containerScrollView.contentOffset.x / self.view.frame.size.width;
+}
+
 -(void)tapAction:(UITapGestureRecognizer *)tapGestureRecognizer{
     if ([tapGestureRecognizer.view isKindOfClass:[UIScrollView class]]) {
         UIScrollView *contentScrollView = (UIScrollView *)tapGestureRecognizer.view;
@@ -156,8 +167,87 @@
 
 }
 
+- (void)showSaveAlert:(UILongPressGestureRecognizer*)longPressGR{
+    
+    if (longPressGR.state == UIGestureRecognizerStateEnded) {
+#ifdef __IPHONE_8_0
+        NSInteger Index = longPressGR.view.tag - 1000;
+        NSString *path = _paths[Index];
+        UIAlertControllerStyle style = UIAlertControllerStyleActionSheet;
+        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+            style = UIAlertControllerStyleAlert;
+        }
+        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"保存" message:@"保存到相冊" preferredStyle:style];
+        UIAlertAction *cacelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            
+        }];
+        UIAlertAction *submitAction = [UIAlertAction actionWithTitle:@"確定" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+           [self saveFromPath:path];
+        }];
+        [alertC addAction:cacelAction];
+        [alertC addAction:submitAction];
+       
+        [self presentViewController:alertC animated:YES completion:^{
+            
+        }];
+#else
+        UIActionSheet *actionSheet = [[UIActionSheet alloc]initWithTitle:@"保存" delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:@"確定" otherButtonTitles:nil];
+        actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
+        [actionSheet showInView:self.view];
+#endif
+        
+       
+    }
+    
+    
+    
+}
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex{
+    if (buttonIndex == 0) {
+        NSString *path = _paths[[self currentIndex]];
+        [self saveFromPath:path];
+    }
+}
 
 
+-(void)saveFromPath:(NSString *)path{
+    ALAssetsLibrary *library = [[ALAssetsLibrary alloc]init];
+    if ([path hasSuffix:@".png"] || [path hasSuffix:@".jpg"]) {
+        UIImage *image = [UIImage imageWithContentsOfFile:path];
+        [library writeImageToSavedPhotosAlbum:image.CGImage orientation:(ALAssetOrientation)image.imageOrientation completionBlock:^(NSURL *assetURL, NSError *error) {
+            if (!error) {
+                [self showAlertWithTitle:@"保存成功!" andMsg:nil];
+            }else{
+                [self showAlertWithTitle:@"保存失敗" andMsg:nil];
+        
+            }
+        }];
+        
+    }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
+        NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
+        [library writeVideoAtPathToSavedPhotosAlbum:url completionBlock:^(NSURL *assetURL, NSError *error) {
+            if (!error) {
+                [self showAlertWithTitle:@"保存成功!" andMsg:nil];
+            }else{
+                [self showAlertWithTitle:@"保存失敗" andMsg:nil];
+            }
+        }];
+    }
+    
+}
+
+-(void)showAlertWithTitle:(NSString *)title andMsg:(NSString *)msg {
+#ifdef __IPHONE_8_0
+    UIAlertController *alertC = [UIAlertController alertControllerWithTitle:title message:msg preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *cacelAction = [UIAlertAction actionWithTitle:@"確定" style:UIAlertActionStyleCancel handler:nil];
+    [alertC addAction:cacelAction];
+    [self presentViewController:alertC animated:YES completion:nil];
+#else
+    UIAlertView *alertV = [[UIAlertView alloc]initWithTitle:title message:msg delegate:nil cancelButtonTitle:@"確定" otherButtonTitles:nil];
+    [alertV show];
+#endif
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
