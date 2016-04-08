@@ -8,6 +8,8 @@
 
 #import "ZKPictureSlideController.h"
 #import <AssetsLibrary/AssetsLibrary.h>
+#import <AVKit/AVKit.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface ZKPictureSlideController ()<UIActionSheetDelegate>
 {
@@ -16,6 +18,10 @@
     CGFloat lastOffsetX;
     
     UIActivityIndicatorView *_activityIndicatorView;
+    
+    NSMutableDictionary *_plyersDics;
+    
+    AVPlayer *_currentPlayer;
 }
 @end
 
@@ -37,10 +43,16 @@
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor blackColor];
    
-    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playbackFinished:)name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
     
     
     [self createUI];
+}
+
+-(void)playbackFinished:(NSNotification *)notification
+{
+    [_currentPlayer seekToTime:CMTimeMake(0, 1)];
+    [_currentPlayer play];
 }
 
 -(UIScrollView *)containerScrollView{
@@ -61,6 +73,7 @@
     
      _contentViews = [NSMutableArray new];
     _contentScrollViews = [NSMutableArray new];
+    _plyersDics = [NSMutableDictionary new];
     
     
     for (int i = 0; i < self.paths.count; i++) {
@@ -98,12 +111,28 @@
             if (imgWidth > imgHeight || imageView.frame.size.height < self.view.frame.size.height) {
                 imageView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
             }
-            contentScrollView.contentSize = CGSizeMake(imageView.frame.size.width, imageView.frame.size.height);
-            [contentScrollView addSubview:imageView];
             contentView = imageView;
+        }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
+            contentView = [[UIView alloc]initWithFrame:CGRectMake(0, 0,self.view.frame.size.width, 500)];
+            contentView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+            
+            NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
+            AVPlayerItem *playerItem = [[AVPlayerItem alloc]initWithURL:url];
+            AVPlayer *player = [AVPlayer playerWithPlayerItem:playerItem];
+            [_plyersDics setObject:player forKey:path];
+            AVPlayerLayer *layer = [AVPlayerLayer playerLayerWithPlayer:player];
+            layer.frame = contentView.bounds;
+            layer.videoGravity =  AVLayerVideoGravityResizeAspectFill;
+            [contentView.layer addSublayer:layer];
+            contentView.backgroundColor = [UIColor yellowColor];
+            if (i == 0) {
+                _currentPlayer = player;
+                [player play];
+            }
         }
         
-        
+        contentScrollView.contentSize = CGSizeMake(contentView.frame.size.width, contentView.frame.size.height);
+        [contentScrollView addSubview:contentView];
       
     
         [_contentViews addObject:contentView];
@@ -121,6 +150,7 @@
     
     _activityIndicatorView = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     _activityIndicatorView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+    _activityIndicatorView.hidesWhenStopped = YES;
     [self.view addSubview:_activityIndicatorView];
 }
 
@@ -147,7 +177,13 @@
     if (scrollView != _containerScrollView) {
         
         NSInteger index = scrollView.tag - 1000;
-        imageView = _contentViews[index];
+        NSString *path = self.paths[index];
+        
+        if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
+            imageView = _contentViews[index];
+         
+        }
+        
     }
     return imageView;
 }
@@ -155,10 +191,30 @@
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
     if (scrollView == _containerScrollView) {
         if (lastOffsetX != _containerScrollView.contentOffset.x) {
-            NSInteger index = lastOffsetX / self.view.frame.size.width;
-            UIScrollView *contentScrollView = _contentScrollViews[index];
-            [contentScrollView setZoomScale:1];
-            contentScrollView.contentOffset = CGPointZero;
+            NSInteger lastIndex = lastOffsetX / self.view.frame.size.width;
+            NSInteger currentIndex = scrollView.contentOffset.x / self.view.frame.size.width;
+            
+            NSString *lastPath = self.paths[lastIndex];
+            NSString *currentPath = self.paths[currentIndex];
+            
+            if([lastPath hasSuffix:@".jpg"] || [lastPath hasSuffix:@".png"]) {
+                UIScrollView *contentScrollView = _contentScrollViews[lastIndex];
+                [contentScrollView setZoomScale:1];
+                contentScrollView.contentOffset = CGPointZero;
+            }else if([lastPath hasSuffix:@".mov"] || [lastPath hasSuffix:@".MOV"] || [lastPath hasSuffix:@".mp4"] || [lastPath hasSuffix:@".MP4"]){
+                AVPlayer *player = (AVPlayer *)_plyersDics[lastPath];
+                [player pause];
+            }
+            
+            if ([currentPath hasSuffix:@".mov"] || [currentPath hasSuffix:@".MOV"] || [currentPath hasSuffix:@".mp4"] || [currentPath hasSuffix:@".MP4"]) {
+                AVPlayer *player = (AVPlayer *)_plyersDics[currentPath];
+                [player play];
+                _currentPlayer = player;
+            }else{
+                _currentPlayer = nil;
+            }
+            
+            
             lastOffsetX = _containerScrollView.contentOffset.x;
         }
     }
@@ -215,6 +271,7 @@
     if ([path hasSuffix:@".png"] || [path hasSuffix:@".jpg"]) {
         UIImage *image = [UIImage imageWithContentsOfFile:path];
         [library writeImageToSavedPhotosAlbum:image.CGImage orientation:(ALAssetOrientation)image.imageOrientation completionBlock:^(NSURL *assetURL, NSError *error) {
+            
             if (!error) {
                 [self showAlertWithTitle:@"保存成功!" andMsg:nil];
             }else{
@@ -232,6 +289,7 @@
             }else{
                 [self showAlertWithTitle:@"保存失敗" andMsg:nil];
             }
+            [_activityIndicatorView stopAnimating];
         }];
     }
     
