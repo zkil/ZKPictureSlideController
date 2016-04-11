@@ -22,6 +22,8 @@
     NSMutableDictionary *_plyersDics;
     
     AVPlayer *_currentPlayer;
+    
+    UIPageControl *_pageControl;
 }
 @end
 
@@ -143,13 +145,23 @@
         [_contentViews addObject:contentView];
       
         
-        CGPoint offset = _containerScrollView.contentOffset;
-        offset.x = self.view.frame.size.width * self.showIndex;
-        [self.containerScrollView setContentOffset:offset];
-        
-        lastOffsetX = offset.x;
-        
     }
+    
+    CGFloat pageWidth = 20;
+    _pageControl = [[UIPageControl alloc]initWithFrame:CGRectMake(0, 0, pageWidth * self.paths.count, pageWidth)];
+    _pageControl.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 100);
+    _pageControl.numberOfPages = self.paths.count;
+    _pageControl.currentPage = self.showIndex;
+    //_pageControl.backgroundColor = [UIColor whiteColor];
+    [_pageControl addTarget:self action:@selector(changePage:) forControlEvents:UIControlEventValueChanged];
+    [self.view addSubview:_pageControl];
+    
+    CGPoint offset = _containerScrollView.contentOffset;
+    offset.x = self.view.frame.size.width * self.showIndex;
+    [self.containerScrollView setContentOffset:offset];
+    
+    lastOffsetX = offset.x;
+    
     
     _activityIndicatorView = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     _activityIndicatorView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
@@ -200,7 +212,7 @@
     if (scrollView == _containerScrollView) {
         if (lastOffsetX != _containerScrollView.contentOffset.x) {
             NSInteger lastIndex = lastOffsetX / self.view.frame.size.width;
-            NSInteger currentIndex = scrollView.contentOffset.x / self.view.frame.size.width;
+            NSInteger currentIndex = _containerScrollView.contentOffset.x / self.view.frame.size.width;
             
             NSString *lastPath = self.paths[lastIndex];
             NSString *currentPath = self.paths[currentIndex];
@@ -222,11 +234,46 @@
                 _currentPlayer = nil;
             }
             
+            _pageControl.currentPage = currentIndex;
             
             lastOffsetX = _containerScrollView.contentOffset.x;
         }
     }
 
+}
+
+-(void)changePage:(UIPageControl *)pageControl{
+    _containerScrollView.contentOffset = CGPointMake(pageControl.currentPage * self.view.frame.size.width, 0);
+    if (lastOffsetX != _containerScrollView.contentOffset.x) {
+        NSInteger lastIndex = lastOffsetX / self.view.frame.size.width;
+        NSInteger currentIndex = _containerScrollView.contentOffset.x / self.view.frame.size.width;
+        
+        NSString *lastPath = self.paths[lastIndex];
+        NSString *currentPath = self.paths[currentIndex];
+        
+        if([lastPath hasSuffix:@".jpg"] || [lastPath hasSuffix:@".png"]) {
+            UIScrollView *contentScrollView = _contentScrollViews[lastIndex];
+            [contentScrollView setZoomScale:1];
+            contentScrollView.contentOffset = CGPointZero;
+        }else if([lastPath hasSuffix:@".mov"] || [lastPath hasSuffix:@".MOV"] || [lastPath hasSuffix:@".mp4"] || [lastPath hasSuffix:@".MP4"]){
+            AVPlayer *player = (AVPlayer *)_plyersDics[lastPath];
+            [player pause];
+        }
+        
+        if ([currentPath hasSuffix:@".mov"] || [currentPath hasSuffix:@".MOV"] || [currentPath hasSuffix:@".mp4"] || [currentPath hasSuffix:@".MP4"]) {
+            AVPlayer *player = (AVPlayer *)_plyersDics[currentPath];
+            [player play];
+            _currentPlayer = player;
+        }else{
+            _currentPlayer = nil;
+        }
+        
+        _pageControl.currentPage = currentIndex;
+        
+        lastOffsetX = _containerScrollView.contentOffset.x;
+    }
+
+    
 }
 
 - (void)showSaveAlert:(UILongPressGestureRecognizer*)longPressGR{
