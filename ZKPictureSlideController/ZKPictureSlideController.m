@@ -7,12 +7,21 @@
 //
 
 #import "ZKPictureSlideController.h"
+#import <AssetsLibrary/AssetsLibrary.h>
+#import <AVKit/AVKit.h>
+#import <AVFoundation/AVFoundation.h>
 
-@interface ZKPictureSlideController ()
+@interface ZKPictureSlideController ()<UIActionSheetDelegate>
 {
-    NSMutableArray *_imageViews;
+    NSMutableArray *_contentViews;
     NSMutableArray *_contentScrollViews;
     CGFloat lastOffsetX;
+    
+    UIActivityIndicatorView *_activityIndicatorView;
+    
+    NSMutableDictionary *_plyersDics;
+    
+    AVPlayer *_currentPlayer;
 }
 @end
 
@@ -28,22 +37,22 @@
     return self;
 }
 
--(id)initWithImages:(NSArray *)images atShowIndex:(NSInteger)index{
-    if (self = [super init]) {
-        _images = images;
-        if (index < images.count) {
-             _showIndex = index;
-        }
-    }
-    return self;
-}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor blackColor];
+   
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playbackFinished:)name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
+    
     
     [self createUI];
+}
+
+-(void)playbackFinished:(NSNotification *)notification
+{
+    [_currentPlayer seekToTime:CMTimeMake(0, 1)];
+    [_currentPlayer play];
 }
 
 -(UIScrollView *)containerScrollView{
@@ -58,14 +67,17 @@
 
 
 -(void)createUI{
+    
+    
     self.containerScrollView.contentSize = CGSizeMake(self.view.frame.size.width * self.paths.count, self.view.frame.size.height);
     
-     _imageViews = [NSMutableArray new];
+     _contentViews = [NSMutableArray new];
     _contentScrollViews = [NSMutableArray new];
+    _plyersDics = [NSMutableDictionary new];
     
-    [self createImageByPaths];
     
-    for (int i = 0; i < self.images.count; i++) {
+    for (int i = 0; i < self.paths.count; i++) {
+        NSString *path = self.paths[i];
         
         UIScrollView *contentScrollView = [[UIScrollView alloc]init];
         contentScrollView.tag = 1000 + i;
@@ -76,49 +88,76 @@
         contentScrollView.minimumZoomScale = 1;
         contentScrollView.maximumZoomScale = 3;
         [self.containerScrollView addSubview:contentScrollView];
+        [_contentScrollViews addObject:contentScrollView];
         
         UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
         tapGestureRecognizer.numberOfTapsRequired = 2;
         [contentScrollView addGestureRecognizer:tapGestureRecognizer];
+        UILongPressGestureRecognizer *longPressGR = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(showSaveAlert:)];
+        [contentScrollView addGestureRecognizer:longPressGR];
         
-        UIImage *image = self.images[i];
-        UIImageView *imageView = [[UIImageView alloc]initWithImage:image];
+        
+        UIView *contentView;
+        
+        if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
+            UIImage *image = [UIImage imageWithContentsOfFile:path];
+            UIImageView *imageView = [[UIImageView alloc]initWithImage:image];
+            imageView.userInteractionEnabled = YES;
+            CGFloat imgWidth = image.size.width;
+            CGFloat imgHeight = image.size.height;
+            CGFloat ratio = imgWidth/imgHeight;
+            imageView.frame = CGRectMake(0, 0, self.view.frame.size.width,self.view.frame.size.width/ratio);
+            imageView.contentMode = UIViewContentModeScaleAspectFit;
+            if (imgWidth > imgHeight || imageView.frame.size.height < self.view.frame.size.height) {
+                imageView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+            }
+            contentView = imageView;
+        }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
+            contentView = [[UIView alloc]initWithFrame:CGRectMake(0, 0,self.view.frame.size.width, 500)];
+            contentView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+            
+            NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
+            AVPlayerItem *playerItem = [[AVPlayerItem alloc]initWithURL:url];
+            AVPlayer *player = [AVPlayer playerWithPlayerItem:playerItem];
+            [_plyersDics setObject:player forKey:path];
+            AVPlayerLayer *layer = [AVPlayerLayer playerLayerWithPlayer:player];
+            layer.frame = contentView.bounds;
+            layer.videoGravity =  AVLayerVideoGravityResizeAspectFill;
+            [contentView.layer addSublayer:layer];
+            contentView.backgroundColor = [UIColor yellowColor];
+            if (i == 0) {
+                _currentPlayer = player;
+                [player play];
+            }
+        }
+        
+        contentScrollView.contentSize = CGSizeMake(contentView.frame.size.width, contentView.frame.size.height);
+        [contentScrollView addSubview:contentView];
       
     
-        CGFloat imgWidth = image.size.width;
-        CGFloat imgHeight = image.size.height;
-        CGFloat ratio = imgWidth/imgHeight;
-        imageView.frame = CGRectMake(0, 0, self.view.frame.size.width,self.view.frame.size.width/ratio);
-        imageView.contentMode = UIViewContentModeScaleAspectFit;
-        if (imgWidth > imgHeight || imageView.frame.size.height < self.view.frame.size.height) {
-            imageView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
-        }
-        contentScrollView.contentSize = CGSizeMake(imageView.frame.size.width, imageView.frame.size.height);
-        [contentScrollView addSubview:imageView];
-        [_contentScrollViews addObject:contentScrollView];
+        [_contentViews addObject:contentView];
       
         
         CGPoint offset = _containerScrollView.contentOffset;
         offset.x = self.view.frame.size.width * self.showIndex;
         [self.containerScrollView setContentOffset:offset];
         
-          [_imageViews addObject:imageView];
         
-        imageView.userInteractionEnabled = YES;
+        
+        
         
     }
+    
+    _activityIndicatorView = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    _activityIndicatorView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+    _activityIndicatorView.hidesWhenStopped = YES;
+    [self.view addSubview:_activityIndicatorView];
 }
 
--(void)createImageByPaths{
-    if (self.paths == nil) {
-        return;
-    }
-    NSMutableArray *imageArray = [NSMutableArray new];
-    for (NSString *path in self.paths) {
-        UIImage *image = [UIImage imageWithContentsOfFile:path];
-        [imageArray addObject:image];
-    }
-    self.images = imageArray;
+
+
+- (NSInteger)currentIndex{
+    return  _containerScrollView.contentOffset.x / self.view.frame.size.width;
 }
 
 -(void)tapAction:(UITapGestureRecognizer *)tapGestureRecognizer{
@@ -138,7 +177,13 @@
     if (scrollView != _containerScrollView) {
         
         NSInteger index = scrollView.tag - 1000;
-        imageView = _imageViews[index];
+        NSString *path = self.paths[index];
+        
+        if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
+            imageView = _contentViews[index];
+         
+        }
+        
     }
     return imageView;
 }
@@ -146,18 +191,121 @@
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
     if (scrollView == _containerScrollView) {
         if (lastOffsetX != _containerScrollView.contentOffset.x) {
-            NSInteger index = lastOffsetX / self.view.frame.size.width;
-            UIScrollView *contentScrollView = _contentScrollViews[index];
-            [contentScrollView setZoomScale:1];
-            contentScrollView.contentOffset = CGPointZero;
+            NSInteger lastIndex = lastOffsetX / self.view.frame.size.width;
+            NSInteger currentIndex = scrollView.contentOffset.x / self.view.frame.size.width;
+            
+            NSString *lastPath = self.paths[lastIndex];
+            NSString *currentPath = self.paths[currentIndex];
+            
+            if([lastPath hasSuffix:@".jpg"] || [lastPath hasSuffix:@".png"]) {
+                UIScrollView *contentScrollView = _contentScrollViews[lastIndex];
+                [contentScrollView setZoomScale:1];
+                contentScrollView.contentOffset = CGPointZero;
+            }else if([lastPath hasSuffix:@".mov"] || [lastPath hasSuffix:@".MOV"] || [lastPath hasSuffix:@".mp4"] || [lastPath hasSuffix:@".MP4"]){
+                AVPlayer *player = (AVPlayer *)_plyersDics[lastPath];
+                [player pause];
+            }
+            
+            if ([currentPath hasSuffix:@".mov"] || [currentPath hasSuffix:@".MOV"] || [currentPath hasSuffix:@".mp4"] || [currentPath hasSuffix:@".MP4"]) {
+                AVPlayer *player = (AVPlayer *)_plyersDics[currentPath];
+                [player play];
+                _currentPlayer = player;
+            }else{
+                _currentPlayer = nil;
+            }
+            
+            
             lastOffsetX = _containerScrollView.contentOffset.x;
         }
     }
 
 }
 
+- (void)showSaveAlert:(UILongPressGestureRecognizer*)longPressGR{
+    
+    if (longPressGR.state == UIGestureRecognizerStateEnded) {
+#ifdef __IPHONE_8_0
+        NSInteger Index = longPressGR.view.tag - 1000;
+        NSString *path = _paths[Index];
+        UIAlertControllerStyle style = UIAlertControllerStyleActionSheet;
+        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+            style = UIAlertControllerStyleAlert;
+        }
+        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"保存" message:@"保存到相冊" preferredStyle:style];
+        UIAlertAction *cacelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+            
+        }];
+        UIAlertAction *submitAction = [UIAlertAction actionWithTitle:@"確定" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+           [self saveFromPath:path];
+        }];
+        [alertC addAction:cacelAction];
+        [alertC addAction:submitAction];
+       
+        [self presentViewController:alertC animated:YES completion:^{
+            
+        }];
+#else
+        UIActionSheet *actionSheet = [[UIActionSheet alloc]initWithTitle:@"保存" delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:@"確定" otherButtonTitles:nil];
+        actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
+        [actionSheet showInView:self.view];
+#endif
+        
+       
+    }
+    
+    
+    
+}
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex{
+    if (buttonIndex == 0) {
+        NSString *path = _paths[[self currentIndex]];
+        [self saveFromPath:path];
+    }
+}
 
 
+-(void)saveFromPath:(NSString *)path{
+    [_activityIndicatorView startAnimating];
+    ALAssetsLibrary *library = [[ALAssetsLibrary alloc]init];
+    if ([path hasSuffix:@".png"] || [path hasSuffix:@".jpg"]) {
+        UIImage *image = [UIImage imageWithContentsOfFile:path];
+        [library writeImageToSavedPhotosAlbum:image.CGImage orientation:(ALAssetOrientation)image.imageOrientation completionBlock:^(NSURL *assetURL, NSError *error) {
+            
+            if (!error) {
+                [self showAlertWithTitle:@"保存成功!" andMsg:nil];
+            }else{
+                [self showAlertWithTitle:@"保存失敗" andMsg:nil];
+        
+            }
+            [_activityIndicatorView stopAnimating];
+        }];
+        
+    }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
+        NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
+        [library writeVideoAtPathToSavedPhotosAlbum:url completionBlock:^(NSURL *assetURL, NSError *error) {
+            if (!error) {
+                [self showAlertWithTitle:@"保存成功!" andMsg:nil];
+            }else{
+                [self showAlertWithTitle:@"保存失敗" andMsg:nil];
+            }
+            [_activityIndicatorView stopAnimating];
+        }];
+    }
+    
+}
+
+-(void)showAlertWithTitle:(NSString *)title andMsg:(NSString *)msg {
+#ifdef __IPHONE_8_0
+    UIAlertController *alertC = [UIAlertController alertControllerWithTitle:title message:msg preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *cacelAction = [UIAlertAction actionWithTitle:@"確定" style:UIAlertActionStyleCancel handler:nil];
+    [alertC addAction:cacelAction];
+    [self presentViewController:alertC animated:YES completion:nil];
+#else
+    UIAlertView *alertV = [[UIAlertView alloc]initWithTitle:title message:msg delegate:nil cancelButtonTitle:@"確定" otherButtonTitles:nil];
+    [alertV show];
+#endif
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

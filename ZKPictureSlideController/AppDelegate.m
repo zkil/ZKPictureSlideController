@@ -16,13 +16,20 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
     NSMutableArray *paths = [NSMutableArray new];
     for (int i = 0; i < 5; i++) {
         NSString *path = [[NSBundle mainBundle]pathForResource:[NSString stringWithFormat:@"%d",i] ofType:@"jpg"];
         [paths addObject:path];
+        path = [[NSBundle mainBundle]pathForResource:[NSString stringWithFormat:@"%d",i] ofType:@"mov"];
+        [paths addObject:path];
     }
     
+    
+    
     ZKPictureSlideController *pictureSlideC = [[ZKPictureSlideController alloc]initWithPicturePaths:paths atShowIndex:0];
+    
+    
     self.window.rootViewController = pictureSlideC;
     return YES;
 }
