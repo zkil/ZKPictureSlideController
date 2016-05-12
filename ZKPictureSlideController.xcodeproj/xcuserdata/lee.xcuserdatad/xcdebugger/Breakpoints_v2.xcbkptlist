@@ -20,11 +20,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ZKPictureSlideController/ZKPictureSlideController.m"
-            timestampString = "482050904.470362"
+            timestampString = "481805796.299242"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "77"
-            endingLineNumber = "77"
+            startingLineNumber = "75"
+            endingLineNumber = "75"
             landmarkName = "-createUI"
             landmarkType = "5">
          </BreakpointContent>
@@ -36,28 +36,16 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ZKPictureSlideController/ZKPictureSlideController.m"
-            timestampString = "482051570.885914"
+            timestampString = "482042924.95415"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "325"
-            endingLineNumber = "325"
-            landmarkName = "-saveFromPath:"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "ZKPictureSlideController/ZKPictureSlideController.m"
-            timestampString = "482051570.885914"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "285"
-            endingLineNumber = "285"
+            startingLineNumber = "278"
+            endingLineNumber = "278"
+<<<<<<< HEAD
             landmarkName = "-showSaveAlert:"
+=======
+            landmarkName = "-saveFromPath:"
+>>>>>>> parent of 3b4ca7e... 加入UIPageControl
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -68,11 +56,31 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ZKPictureSlideController/ZKPictureSlideController.m"
-            timestampString = "482050904.470362"
+            timestampString = "482042924.95415"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "127"
-            endingLineNumber = "127"
+            startingLineNumber = "238"
+            endingLineNumber = "238"
+<<<<<<< HEAD
+            landmarkName = "-scrollViewDidEndDecelerating:"
+=======
+            landmarkName = "-showSaveAlert:"
+>>>>>>> parent of 3b4ca7e... 加入UIPageControl
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ZKPictureSlideController/ZKPictureSlideController.m"
+            timestampString = "482042924.95415"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "125"
+            endingLineNumber = "125"
             landmarkName = "-createUI"
             landmarkType = "5">
          </BreakpointContent>
@@ -84,12 +92,16 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ZKPictureSlideController/ZKPictureSlideController.m"
-            timestampString = "482051109.732877"
+            timestampString = "482042924.95415"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "232"
-            endingLineNumber = "232"
+            startingLineNumber = "220"
+            endingLineNumber = "220"
+<<<<<<< HEAD
+            landmarkName = "-viewForZoomingInScrollView:"
+=======
             landmarkName = "-scrollViewDidEndDecelerating:"
+>>>>>>> parent of 3b4ca7e... 加入UIPageControl
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
