@@ -20,8 +20,6 @@
 		9B2F3C281CA8E8340057403B /* 3.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9B2F3C231CA8E8340057403B /* 3.jpg */; };
 		9B2F3C291CA8E8340057403B /* 4.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9B2F3C241CA8E8340057403B /* 4.jpg */; };
 		9B2F3C2C1CA8E9CF0057403B /* 0.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9B2F3C2B1CA8E9CF0057403B /* 0.jpg */; };
-		9B6D48E51CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B6D48E21CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m */; };
-		9B6D48E61CE4326E00BCC38D /* UIView+SDAutoLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B6D48E41CE4326E00BCC38D /* UIView+SDAutoLayout.m */; };
 		9BA7BE841CB7C1880060C0C7 /* 0.mov in Resources */ = {isa = PBXBuildFile; fileRef = 9BA7BE801CB7C1870060C0C7 /* 0.mov */; };
 		9BA7BE851CB7C1880060C0C7 /* 1.mov in Resources */ = {isa = PBXBuildFile; fileRef = 9BA7BE811CB7C1870060C0C7 /* 1.mov */; };
 		9BA7BE861CB7C1880060C0C7 /* 2.mov in Resources */ = {isa = PBXBuildFile; fileRef = 9BA7BE821CB7C1880060C0C7 /* 2.mov */; };
@@ -60,10 +58,6 @@
 		9B2F3C231CA8E8340057403B /* 3.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 3.jpg; sourceTree = "<group>"; };
 		9B2F3C241CA8E8340057403B /* 4.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 4.jpg; sourceTree = "<group>"; };
 		9B2F3C2B1CA8E9CF0057403B /* 0.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 0.jpg; sourceTree = "<group>"; };
-		9B6D48E11CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UITableView+SDAutoTableViewCellHeight.h"; sourceTree = "<group>"; };
-		9B6D48E21CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UITableView+SDAutoTableViewCellHeight.m"; sourceTree = "<group>"; };
-		9B6D48E31CE4326E00BCC38D /* UIView+SDAutoLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+SDAutoLayout.h"; sourceTree = "<group>"; };
-		9B6D48E41CE4326E00BCC38D /* UIView+SDAutoLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+SDAutoLayout.m"; sourceTree = "<group>"; };
 		9BA7BE801CB7C1870060C0C7 /* 0.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = 0.mov; sourceTree = "<group>"; };
 		9BA7BE811CB7C1870060C0C7 /* 1.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = 1.mov; sourceTree = "<group>"; };
 		9BA7BE821CB7C1880060C0C7 /* 2.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = 2.mov; sourceTree = "<group>"; };
@@ -110,7 +104,6 @@
 		9B2F3BF61CA8D35F0057403B /* ZKPictureSlideController */ = {
 			isa = PBXGroup;
 			children = (
-				9B6D48E01CE4326E00BCC38D /* SDAutoLayout */,
 				9B2F3BFB1CA8D35F0057403B /* AppDelegate.h */,
 				9B2F3BFC1CA8D35F0057403B /* AppDelegate.m */,
 				9B2F3BFE1CA8D35F0057403B /* ViewController.h */,
@@ -167,17 +160,6 @@
 				9BA7BE831CB7C1880060C0C7 /* 3.mov */,
 			);
 			path = resouse;
-			sourceTree = "<group>";
-		};
-		9B6D48E01CE4326E00BCC38D /* SDAutoLayout */ = {
-			isa = PBXGroup;
-			children = (
-				9B6D48E11CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.h */,
-				9B6D48E21CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m */,
-				9B6D48E31CE4326E00BCC38D /* UIView+SDAutoLayout.h */,
-				9B6D48E41CE4326E00BCC38D /* UIView+SDAutoLayout.m */,
-			);
-			path = SDAutoLayout;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -292,10 +274,8 @@
 			files = (
 				9B2F3C001CA8D35F0057403B /* ViewController.m in Sources */,
 				9B2F3BFD1CA8D35F0057403B /* AppDelegate.m in Sources */,
-				9B6D48E61CE4326E00BCC38D /* UIView+SDAutoLayout.m in Sources */,
 				9B2F3BFA1CA8D35F0057403B /* main.m in Sources */,
 				9B2F3C1F1CA8D3750057403B /* ZKPictureSlideController.m in Sources */,
-				9B6D48E51CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

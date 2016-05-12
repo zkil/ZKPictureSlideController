@@ -12,6 +12,8 @@
 
 @property(nonatomic,strong)NSArray *paths;
 @property(nonatomic)NSInteger showIndex;
+@property(nonatomic)BOOL isRelativePaths;
+@property(nonatomic)BOOL hiddenPage;
 
 @property(nonatomic,strong)UIScrollView *containerScrollView;
 
