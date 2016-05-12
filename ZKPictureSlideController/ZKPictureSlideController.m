@@ -51,15 +51,65 @@
     [self createUI];
 }
 
--(void)playbackFinished:(NSNotification *)notification
-{
-    [_currentPlayer seekToTime:CMTimeMake(0, 1)];
-    [_currentPlayer play];
+
+-(void)viewDidLayoutSubviews{
+    [super viewDidLayoutSubviews];
+    _containerScrollView.frame = self.view.bounds;
+    self.containerScrollView.contentSize = CGSizeMake(self.view.frame.size.width * self.paths.count, self.view.frame.size.height);
+    
+    [_contentScrollViews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        UIScrollView *contentScrollView = obj;
+        CGRect rect = self.view.bounds;
+        rect.origin.x += idx * self.view.frame.size.width;
+        contentScrollView.zoomScale = 1;
+        contentScrollView.frame = rect;
+        contentScrollView.contentOffset = CGPointZero;
+        
+        UIImageView *contentView = _contentViews[idx];
+        NSString *path = self.paths[idx];
+        if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
+            UIImage *image = contentView.image;
+            
+            CGFloat imgWidth = image.size.width;
+            CGFloat imgHeight = image.size.height;
+            CGFloat ratio = imgWidth/imgHeight;
+            contentView.frame = CGRectMake(0, 0, self.view.frame.size.width,self.view.frame.size.width/ratio);
+            if (imgWidth > imgHeight || contentView.frame.size.height < self.view.frame.size.height) {
+                contentView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+            }
+        }else{
+            if (self.view.frame.size.height > self.view.frame.size.width) {
+                CGFloat ratio = 3.0/4;
+                contentView.frame = CGRectMake(0, 0,self.view.frame.size.width, self.view.frame.size.width *ratio);
+                contentView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+            }else{
+                contentView.frame = self.view.bounds;
+            }
+            
+            CALayer *playerLayer = [[contentView.layer sublayers]lastObject];
+            playerLayer.frame = contentView.bounds;
+        }
+        contentScrollView.contentSize = CGSizeMake(contentView.frame.size.width, contentView.frame.size.height);
+        
+    }];
+    
+    
+    NSInteger currentIndex = lastOffsetX / self.view.frame.size.height;
+    _containerScrollView.contentOffset = CGPointMake(currentIndex * self.view.frame.size.width, 0);
+    
+    lastOffsetX = currentIndex * self.view.frame.size.width;
+    _activityIndicatorView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+    
+    _pageControl.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 50);
+}
+
+-(BOOL)shouldAutorotate{
+    return YES;
 }
 
 -(UIScrollView *)containerScrollView{
     if (_containerScrollView == nil) {
-        _containerScrollView = [[UIScrollView alloc]initWithFrame:self.view.bounds];
+        _containerScrollView = [[UIScrollView alloc]init];
         _containerScrollView.pagingEnabled = YES;
         _containerScrollView.delegate = self;
         [self.view addSubview:_containerScrollView];
@@ -69,9 +119,6 @@
 
 
 -(void)createUI{
-    
-    
-    self.containerScrollView.contentSize = CGSizeMake(self.view.frame.size.width * self.paths.count, self.view.frame.size.height);
     
      _contentViews = [NSMutableArray new];
     _contentScrollViews = [NSMutableArray new];
@@ -88,12 +135,10 @@
         UIScrollView *contentScrollView = [[UIScrollView alloc]init];
         contentScrollView.tag = 1000 + i;
         contentScrollView.delegate = self;
-        CGRect rect = self.view.bounds;
-        rect.origin.x += i * self.view.frame.size.width;
-        contentScrollView.frame = rect;
         contentScrollView.minimumZoomScale = 1;
         contentScrollView.maximumZoomScale = 3;
         [self.containerScrollView addSubview:contentScrollView];
+        
         [_contentScrollViews addObject:contentScrollView];
         
         UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
@@ -110,32 +155,20 @@
         [contentScrollView addGestureRecognizer:longPressGR];
         
         
-        UIView *contentView;
+        UIImageView *contentView = [UIImageView new];
+        contentView.contentMode = UIViewContentModeScaleAspectFit;
+        contentView.userInteractionEnabled = YES;
         
         if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
             UIImage *image = [UIImage imageWithContentsOfFile:path];
-            UIImageView *imageView = [[UIImageView alloc]initWithImage:image];
-            imageView.userInteractionEnabled = YES;
-            CGFloat imgWidth = image.size.width;
-            CGFloat imgHeight = image.size.height;
-            CGFloat ratio = imgWidth/imgHeight;
-            imageView.frame = CGRectMake(0, 0, self.view.frame.size.width,self.view.frame.size.width/ratio);
-            imageView.contentMode = UIViewContentModeScaleAspectFit;
-            if (imgWidth > imgHeight || imageView.frame.size.height < self.view.frame.size.height) {
-                imageView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
-            }
-            contentView = imageView;
+            contentView.image = image;
         }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
-            CGFloat ratio = 3.0/4;
-            contentView = [[UIView alloc]initWithFrame:CGRectMake(0, 0,self.view.frame.size.width, self.view.frame.size.width *ratio)];
-            contentView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
-            
             NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
             AVPlayerItem *playerItem = [[AVPlayerItem alloc]initWithURL:url];
             AVPlayer *player = [AVPlayer playerWithPlayerItem:playerItem];
             [_plyersDics setObject:player forKey:self.paths[i]];
             AVPlayerLayer *layer = [AVPlayerLayer playerLayerWithPlayer:player];
-            layer.frame = contentView.bounds;
+            layer.frame = self.view.bounds;
             layer.videoGravity =  AVLayerVideoGravityResizeAspectFill;
             [contentView.layer addSublayer:layer];
             contentView.backgroundColor = [UIColor blackColor];
@@ -146,7 +179,7 @@
         }
         
         
-        contentScrollView.contentSize = CGSizeMake(contentView.frame.size.width, contentView.frame.size.height);
+        
         [contentScrollView addSubview:contentView];
       
     
@@ -166,7 +199,7 @@
     if (self.paths.count > 1) {
         CGFloat pageWidth = 10;
         _pageControl = [[UIPageControl alloc]initWithFrame:CGRectMake(0, 0, pageWidth * self.paths.count, pageWidth)];
-        _pageControl.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 50);
+
         _pageControl.numberOfPages = self.paths.count;
         _pageControl.currentPage = self.showIndex;
         
@@ -180,7 +213,6 @@
     
     
     _activityIndicatorView = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-    _activityIndicatorView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
     _activityIndicatorView.hidesWhenStopped = YES;
     [self.view addSubview:_activityIndicatorView];
 }
@@ -191,22 +223,7 @@
     return  _containerScrollView.contentOffset.x / self.view.frame.size.width;
 }
 
--(void)tapAction:(UITapGestureRecognizer *)tapGestureRecognizer{
-    if ([tapGestureRecognizer.view isKindOfClass:[UIScrollView class]]) {
-        if (tapGestureRecognizer.numberOfTapsRequired == 2) {
-            UIScrollView *contentScrollView = (UIScrollView *)tapGestureRecognizer.view;
-            if (contentScrollView.zoomScale > 1) {
-                [contentScrollView setZoomScale:1 animated:YES];
-            }else{
-                [contentScrollView setZoomScale:2 animated:YES];
-            }
-        }else if (tapGestureRecognizer.numberOfTapsRequired == 1){
-            [self dismissViewControllerAnimated:YES completion:nil];
-        }
-        
-        
-    }
-}
+#pragma -mark- UIScrollViewDelegate
 
 -(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
     UIImageView *imageView = nil;
@@ -223,6 +240,7 @@
     }
     return imageView;
 }
+
 
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
     if (scrollView == _containerScrollView) {
@@ -257,6 +275,7 @@
 
 }
 
+#pragma -mark- pageControl
 
 -(void)changePage:(UIPageControl *)pageControl{
     _containerScrollView.contentOffset = CGPointMake(pageControl.currentPage * self.view.frame.size.width, 0);
@@ -292,6 +311,24 @@
     
 }
 
+#pragma -mark- action
+
+-(void)tapAction:(UITapGestureRecognizer *)tapGestureRecognizer{
+    if ([tapGestureRecognizer.view isKindOfClass:[UIScrollView class]]) {
+        if (tapGestureRecognizer.numberOfTapsRequired == 2) {
+            UIScrollView *contentScrollView = (UIScrollView *)tapGestureRecognizer.view;
+            if (contentScrollView.zoomScale > 1) {
+                [contentScrollView setZoomScale:1 animated:YES];
+            }else{
+                [contentScrollView setZoomScale:2 animated:YES];
+            }
+        }else if (tapGestureRecognizer.numberOfTapsRequired == 1){
+            [self dismissViewControllerAnimated:YES completion:nil];
+        }
+        
+        
+    }
+}
 
 - (void)showSaveAlert:(UILongPressGestureRecognizer*)longPressGR{
     
@@ -329,6 +366,8 @@
     
 }
 
+#pragma -mark- UIActionSheetDelegate
+
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex{
     if (buttonIndex == 0) {
         NSString *path = _paths[[self currentIndex]];
@@ -336,6 +375,7 @@
     }
 }
 
+#pragma -mark-保存到相册
 
 -(void)saveFromPath:(NSString *)path{
     [_activityIndicatorView startAnimating];
@@ -365,6 +405,14 @@
         }];
     }
     
+}
+
+#pragma -mark- noyofication
+
+-(void)playbackFinished:(NSNotification *)notification
+{
+    [_currentPlayer seekToTime:CMTimeMake(0, 1)];
+    [_currentPlayer play];
 }
 
 -(void)showAlertWithTitle:(NSString *)title andMsg:(NSString *)msg {
