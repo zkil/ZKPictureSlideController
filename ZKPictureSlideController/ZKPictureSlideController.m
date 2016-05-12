@@ -105,11 +105,6 @@
         UILongPressGestureRecognizer *longPressGR = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(showSaveAlert:)];
         [contentScrollView addGestureRecognizer:longPressGR];
         
-        UITapGestureRecognizer *dismissTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
-        dismissTap.numberOfTapsRequired = 1;
-        [contentScrollView addGestureRecognizer:dismissTap];
-        
-        [dismissTap requireGestureRecognizerToFail:tapGestureRecognizer];
         
         UIView *contentView;
         
@@ -159,7 +154,9 @@
         offset.x = self.view.frame.size.width * self.showIndex;
         [self.containerScrollView setContentOffset:offset];
         
-        lastOffsetX = offset.x;
+        
+        
+        
         
 <<<<<<< HEAD
     }
@@ -203,17 +200,12 @@
 
 -(void)tapAction:(UITapGestureRecognizer *)tapGestureRecognizer{
     if ([tapGestureRecognizer.view isKindOfClass:[UIScrollView class]]) {
-        if (tapGestureRecognizer.numberOfTapsRequired == 2) {
-            UIScrollView *contentScrollView = (UIScrollView *)tapGestureRecognizer.view;
-            if (contentScrollView.zoomScale > 1) {
-                [contentScrollView setZoomScale:1 animated:YES];
-            }else{
-                [contentScrollView setZoomScale:2 animated:YES];
-            }
-        }else if (tapGestureRecognizer.numberOfTapsRequired == 1){
-            [self dismissViewControllerAnimated:YES completion:nil];
+        UIScrollView *contentScrollView = (UIScrollView *)tapGestureRecognizer.view;
+        if (contentScrollView.zoomScale > 1) {
+            [contentScrollView setZoomScale:1 animated:YES];
+        }else{
+            [contentScrollView setZoomScale:2 animated:YES];
         }
-
         
     }
 }
