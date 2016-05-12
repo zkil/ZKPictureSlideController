@@ -155,7 +155,11 @@
         [self.containerScrollView setContentOffset:offset];
         
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+        
+>>>>>>> parent of 1a233d6... Merge pull request #2 from zkil/添加視頻
         
         
         
