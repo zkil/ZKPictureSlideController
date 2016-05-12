@@ -41,7 +41,11 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "278"
             endingLineNumber = "278"
+<<<<<<< HEAD
+            landmarkName = "-showSaveAlert:"
+=======
             landmarkName = "-saveFromPath:"
+>>>>>>> parent of 3b4ca7e... 加入UIPageControl
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -57,7 +61,11 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "238"
             endingLineNumber = "238"
+<<<<<<< HEAD
+            landmarkName = "-scrollViewDidEndDecelerating:"
+=======
             landmarkName = "-showSaveAlert:"
+>>>>>>> parent of 3b4ca7e... 加入UIPageControl
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -89,7 +97,11 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "220"
             endingLineNumber = "220"
+<<<<<<< HEAD
+            landmarkName = "-viewForZoomingInScrollView:"
+=======
             landmarkName = "-scrollViewDidEndDecelerating:"
+>>>>>>> parent of 3b4ca7e... 加入UIPageControl
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

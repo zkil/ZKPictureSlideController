@@ -10,6 +10,7 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <AVKit/AVKit.h>
 #import <AVFoundation/AVFoundation.h>
+#import "UIView+SDAutoLayout.h"
 
 @interface ZKPictureSlideController ()<UIActionSheetDelegate>
 {
@@ -57,10 +58,16 @@
 
 -(UIScrollView *)containerScrollView{
     if (_containerScrollView == nil) {
-        _containerScrollView = [[UIScrollView alloc]initWithFrame:self.view.bounds];
+        _containerScrollView = [[UIScrollView alloc]init];
         _containerScrollView.pagingEnabled = YES;
         _containerScrollView.delegate = self;
         [self.view addSubview:_containerScrollView];
+        
+        _containerScrollView.sd_layout
+        .leftSpaceToView(self.view,0)
+        .topSpaceToView(self.view,0)
+        .rightSpaceToView(self.view,0)
+        .bottomSpaceToView(self.view,0);
     }
     return _containerScrollView;
 }
@@ -69,25 +76,27 @@
 -(void)createUI{
     
     
-    self.containerScrollView.contentSize = CGSizeMake(self.view.frame.size.width * self.paths.count, self.view.frame.size.height);
+    //self.containerScrollView.contentSize = CGSizeMake(self.view.frame.size.width * self.paths.count, self.view.frame.size.height);
     
      _contentViews = [NSMutableArray new];
     _contentScrollViews = [NSMutableArray new];
     _plyersDics = [NSMutableDictionary new];
     
     
+    UIScrollView *lastScrollView;
     for (int i = 0; i < self.paths.count; i++) {
         NSString *path = self.paths[i];
         
         UIScrollView *contentScrollView = [[UIScrollView alloc]init];
         contentScrollView.tag = 1000 + i;
         contentScrollView.delegate = self;
-        CGRect rect = self.view.bounds;
-        rect.origin.x += i * self.view.frame.size.width;
-        contentScrollView.frame = rect;
+//        CGRect rect = self.view.bounds;
+//        rect.origin.x += i * self.view.frame.size.width;
+//        contentScrollView.frame = rect;
         contentScrollView.minimumZoomScale = 1;
         contentScrollView.maximumZoomScale = 3;
         [self.containerScrollView addSubview:contentScrollView];
+        
         [_contentScrollViews addObject:contentScrollView];
         
         UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
@@ -103,6 +112,9 @@
         [dismissTap requireGestureRecognizerToFail:tapGestureRecognizer];
         
         UIView *contentView;
+        
+        CGFloat imgWidth;
+        CGFloat imgHeight
         
         if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
             UIImage *image = [UIImage imageWithContentsOfFile:path];
@@ -149,8 +161,34 @@
         
         lastOffsetX = offset.x;
         
+<<<<<<< HEAD
     }
     
+<<<<<<< HEAD
+    if (self.paths.count > 1) {
+        CGFloat pageWidth = 20;
+        _pageControl = [[UIPageControl alloc]initWithFrame:CGRectMake(0, 0, pageWidth * self.paths.count, pageWidth)];
+        _pageControl.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 100);
+        _pageControl.numberOfPages = self.paths.count;
+        _pageControl.currentPage = self.showIndex;
+        [_pageControl addTarget:self action:@selector(changePage:) forControlEvents:UIControlEventValueChanged];
+        [self.view addSubview:_pageControl];
+    }
+    
+    
+    CGPoint offset = _containerScrollView.contentOffset;
+    offset.x = self.view.frame.size.width * self.showIndex;
+    [self.containerScrollView setContentOffset:offset];
+    
+    lastOffsetX = offset.x;
+    
+    
+=======
+>>>>>>> parent of 3b4ca7e... 加入UIPageControl
+=======
+    }
+    
+>>>>>>> parent of 3b4ca7e... 加入UIPageControl
     _activityIndicatorView = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     _activityIndicatorView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
     _activityIndicatorView.hidesWhenStopped = YES;
