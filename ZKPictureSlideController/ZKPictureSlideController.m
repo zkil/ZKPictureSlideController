@@ -10,11 +10,15 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <AVKit/AVKit.h>
 #import <AVFoundation/AVFoundation.h>
+#import "UIImage+Additions.h"
+#import "AFNetworking.h"
+#import "MBProgressHUD.h"
 
 @interface ZKPictureSlideController ()<UIActionSheetDelegate>
 {
     NSMutableArray *_contentViews;
     NSMutableArray *_contentScrollViews;
+    NSMutableArray *_prgressHUDs;
     CGFloat lastOffsetX;
     
     UIActivityIndicatorView *_activityIndicatorView;
@@ -31,7 +35,8 @@
 
 -(id)initWithPicturePaths:(NSArray *)paths atShowIndex:(NSInteger)index{
     if (self = [super init]) {
-        _paths = paths;
+        
+        
         if (index < paths.count) {
             _showIndex = index;
         }
@@ -39,17 +44,26 @@
     return self;
 }
 
+-(id)initWithMessages:(NSArray *)messaegs atShowIndex:(NSInteger)index{
+    if (self = [super init]) {
+        _messages = messaegs;
+           }
+    return self;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor blackColor];
-   
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playbackFinished:)name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
-    
-    
+    _contentViews = [NSMutableArray new];
+    _contentScrollViews = [NSMutableArray new];
+    _plyersDics = [NSMutableDictionary new];
+    _prgressHUDs = [NSMutableArray new];
+
     [self createUI];
 }
+
 
 
 -(void)viewDidLayoutSubviews{
@@ -69,11 +83,16 @@
         NSString *path = self.paths[idx];
         if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
             UIImage *image = contentView.image;
-            
             CGFloat imgWidth = image.size.width;
             CGFloat imgHeight = image.size.height;
-            CGFloat ratio = imgWidth/imgHeight;
-            contentView.frame = CGRectMake(0, 0, self.view.frame.size.width,self.view.frame.size.width/ratio);
+            
+            if (imgWidth != 0 && imgHeight != 0) {
+                CGFloat ratio = imgWidth/imgHeight;
+                contentView.frame = CGRectMake(0, 0, self.view.frame.size.width,self.view.frame.size.width/ratio);
+            }else{
+                contentView.frame = self.view.bounds;
+            }
+            
             if (imgWidth > imgHeight || contentView.frame.size.height < self.view.frame.size.height) {
                 contentView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
             }
@@ -93,15 +112,12 @@
         
     }];
     
-    
-    NSInteger currentIndex = lastOffsetX / self.view.frame.size.height;
-    _containerScrollView.contentOffset = CGPointMake(currentIndex * self.view.frame.size.width, 0);
-    
-    lastOffsetX = currentIndex * self.view.frame.size.width;
+     _pageControl.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 50);
     _activityIndicatorView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
+    _containerScrollView.contentOffset = CGPointMake(_pageControl.currentPage * self.view.frame.size.width, 0);
     
-    _pageControl.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 50);
 }
+
 
 -(BOOL)shouldAutorotate{
     return YES;
@@ -119,15 +135,18 @@
 
 
 -(void)createUI{
-    
-     _contentViews = [NSMutableArray new];
-    _contentScrollViews = [NSMutableArray new];
-    _plyersDics = [NSMutableDictionary new];
-    
-    
+    CGPoint offset = self.containerScrollView.contentOffset;
+    offset.x = self.view.frame.size.width * self.showIndex;
+    [self.containerScrollView setContentOffset:offset];
+    lastOffsetX = offset.x;
     for (int i = 0; i < self.paths.count; i++) {
         NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
         NSString *path =  self.paths[i];
+        NSString *url = nil;
+        if (i < self.urls.count) {
+            url = self.urls[i];
+        }
+        
         if (self.isRelativePaths) {
             path = [documentPath stringByAppendingPathComponent:path];
         }
@@ -141,13 +160,17 @@
         
         [_contentScrollViews addObject:contentScrollView];
         
+        MBProgressHUD *hud = [[MBProgressHUD alloc]initWithView:contentScrollView];
+        hud.mode = MBProgressHUDModeDeterminate;
+        [_prgressHUDs addObject:hud];
+        
         UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
         tapGestureRecognizer.numberOfTapsRequired = 2;
         [contentScrollView addGestureRecognizer:tapGestureRecognizer];
         
         UITapGestureRecognizer *dismissTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
         dismissTap.numberOfTapsRequired = 1;
-        [contentScrollView addGestureRecognizer:dismissTap];
+        [self.view addGestureRecognizer:dismissTap];
         
         [dismissTap requireGestureRecognizerToFail:tapGestureRecognizer];
         
@@ -163,21 +186,16 @@
             UIImage *image = [UIImage imageWithContentsOfFile:path];
             contentView.image = image;
         }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
-            NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
-            AVPlayerItem *playerItem = [[AVPlayerItem alloc]initWithURL:url];
-            AVPlayer *player = [AVPlayer playerWithPlayerItem:playerItem];
-            [_plyersDics setObject:player forKey:self.paths[i]];
-            AVPlayerLayer *layer = [AVPlayerLayer playerLayerWithPlayer:player];
-            layer.frame = self.view.bounds;
-            layer.videoGravity =  AVLayerVideoGravityResizeAspectFill;
-            [contentView.layer addSublayer:layer];
             contentView.backgroundColor = [UIColor blackColor];
-            if (i == self.showIndex) {
-                _currentPlayer = player;
-                [player play];
+            contentView.image = [UIImage getCacheImageWithVideoURL:[NSURL fileURLWithPath:path] error:nil];
+            if ([[NSFileManager defaultManager]fileExistsAtPath:path]) {
+                [self playerVideoAtView:contentView path:path];
+            }else{
+                [self requestDownloadVideoWithURL:url savePath:path atView:contentScrollView progressView:hud];
             }
+            
+            
         }
-        
         
         
         [contentScrollView addSubview:contentView];
@@ -189,12 +207,7 @@
         
     }
     
-    CGPoint offset = _containerScrollView.contentOffset;
-    offset.x = self.view.frame.size.width * self.showIndex;
-    [self.containerScrollView setContentOffset:offset];
     
-    
-    lastOffsetX = offset.x;
     
     if (self.paths.count > 1) {
         CGFloat pageWidth = 10;
@@ -204,7 +217,7 @@
         _pageControl.currentPage = self.showIndex;
         
         [_pageControl addTarget:self action:@selector(changePage:) forControlEvents:UIControlEventValueChanged];
-        if (self.hiddenPage) {
+        if (!self.hiddenPage) {
              [self.view addSubview:_pageControl];
         }
        
@@ -215,9 +228,57 @@
     _activityIndicatorView = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     _activityIndicatorView.hidesWhenStopped = YES;
     [self.view addSubview:_activityIndicatorView];
+    
+    [self viewDidLayoutSubviews];
 }
 
+#pragma -mark- requst
 
+- (void)requestDownloadVideoWithURL:(NSString *)urlSting savePath:(NSString *)path atView:(UIView *)view progressView:(MBProgressHUD *)hud {
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlSting] cachePolicy:NSURLRequestReturnCacheDataElseLoad timeoutInterval:20];
+    
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithSessionConfiguration:configuration];
+    
+    manager.requestSerializer = [AFHTTPRequestSerializer serializer];
+    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
+    [hud show:YES];
+    NSURLSessionDataTask *dataTask = [manager dataTaskWithRequest:request uploadProgress:nil downloadProgress:^(NSProgress * _Nonnull downloadProgress) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            hud.progress = downloadProgress.fractionCompleted;
+        });
+    } completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
+        if (error == nil) {
+            NSData *data = responseObject;
+            if ([data writeToFile:path atomically:YES]) {
+                [self playerVideoAtView:view path:path];
+                
+            }
+        }else{
+            NSLog(@"%@",error.localizedDescription);
+        }
+        [hud hide:YES];
+        
+    }];
+    [dataTask resume];
+}
+
+- (void)playerVideoAtView:(UIView *)view path:(NSString *)path{
+    NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
+    AVPlayerItem *playerItem = [[AVPlayerItem alloc]initWithURL:url];
+    AVPlayer *player = [AVPlayer playerWithPlayerItem:playerItem];
+    [_plyersDics setObject:player forKey:path];
+    AVPlayerLayer *layer = [AVPlayerLayer playerLayerWithPlayer:player];
+    layer.frame = self.view.bounds;
+    layer.videoGravity =  AVLayerVideoGravityResizeAspectFill;
+    [view.layer addSublayer:layer];
+    
+    NSInteger index = [_paths indexOfObject:path];
+    if (index == [self currentIndex]) {
+        [player play];
+        _currentPlayer = player;
+    }
+}
 
 - (NSInteger)currentIndex{
     return  _containerScrollView.contentOffset.x / self.view.frame.size.width;
@@ -322,11 +383,11 @@
             }else{
                 [contentScrollView setZoomScale:2 animated:YES];
             }
-        }else if (tapGestureRecognizer.numberOfTapsRequired == 1){
-            [self dismissViewControllerAnimated:YES completion:nil];
         }
         
         
+    }else if (tapGestureRecognizer.numberOfTapsRequired == 1){
+        [self dismissViewControllerAnimated:YES completion:nil];
     }
 }
 
