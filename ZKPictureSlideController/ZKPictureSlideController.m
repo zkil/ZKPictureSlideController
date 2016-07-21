@@ -199,7 +199,9 @@
             contentView.image = image;
         }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
             contentView.backgroundColor = [UIColor blackColor];
+
             //contentView.image = [UIImage getCacheImageWithVideoURL:[NSURL fileURLWithPath:path] error:nil];
+
             if ([[NSFileManager defaultManager]fileExistsAtPath:path]) {
                 [self playerVideoAtView:contentView path:path];
             }else{
@@ -254,7 +256,9 @@
     
     manager.requestSerializer = [AFHTTPRequestSerializer serializer];
     manager.responseSerializer = [AFHTTPResponseSerializer serializer];
+
     [hud showAnimated:YES];
+
     NSURLSessionDataTask *dataTask = [manager dataTaskWithRequest:request uploadProgress:nil downloadProgress:^(NSProgress * _Nonnull downloadProgress) {
         dispatch_async(dispatch_get_main_queue(), ^{
             hud.progress = downloadProgress.fractionCompleted;
@@ -269,7 +273,9 @@
         }else{
             NSLog(@"%@",error.localizedDescription);
         }
+
         [hud hideAnimated:YES];
+
         
     }];
     [dataTask resume];
@@ -282,7 +288,9 @@
     [_plyersDics setObject:player forKey:path];
     AVPlayerLayer *layer = [AVPlayerLayer playerLayerWithPlayer:player];
     layer.frame = self.view.bounds;
+
     layer.videoGravity =  AVLayerVideoGravityResizeAspect;
+
     [view.layer addSublayer:layer];
     
     NSInteger index = [_paths indexOfObject:path];
@@ -400,7 +408,9 @@
         
     }else if (tapGestureRecognizer.numberOfTapsRequired == 1){
         [self dismissViewControllerAnimated:YES completion:nil];
+
         //[_currentPlayer play];
+
     }
 }
 
