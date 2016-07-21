@@ -38,6 +38,7 @@
         
         
         if (index < paths.count) {
+            _paths = paths;
             _showIndex = index;
         }
     }
@@ -53,7 +54,25 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     // Do any additional setup after loading the view.
+    NSError *error = nil;
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback
+                                           error:&error];
+    
+    if(!error)
+    {
+        [[AVAudioSession sharedInstance] setActive:YES error:&error];
+        
+        if(error) NSLog(@"Error while activating AudioSession : %@", error);
+    }
+    else
+    {
+        NSLog(@"Error while setting category of AudioSession : %@", error);
+    }
+
+    
+    
     self.view.backgroundColor = [UIColor blackColor];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playbackFinished:)name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
     _contentViews = [NSMutableArray new];
@@ -97,14 +116,7 @@
                 contentView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
             }
         }else{
-            if (self.view.frame.size.height > self.view.frame.size.width) {
-                CGFloat ratio = 3.0/4;
-                contentView.frame = CGRectMake(0, 0,self.view.frame.size.width, self.view.frame.size.width *ratio);
-                contentView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
-            }else{
-                contentView.frame = self.view.bounds;
-            }
-            
+            contentView.frame = self.view.bounds;
             CALayer *playerLayer = [[contentView.layer sublayers]lastObject];
             playerLayer.frame = contentView.bounds;
         }
@@ -187,7 +199,9 @@
             contentView.image = image;
         }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
             contentView.backgroundColor = [UIColor blackColor];
-            contentView.image = [UIImage getCacheImageWithVideoURL:[NSURL fileURLWithPath:path] error:nil];
+
+            //contentView.image = [UIImage getCacheImageWithVideoURL:[NSURL fileURLWithPath:path] error:nil];
+
             if ([[NSFileManager defaultManager]fileExistsAtPath:path]) {
                 [self playerVideoAtView:contentView path:path];
             }else{
@@ -242,7 +256,9 @@
     
     manager.requestSerializer = [AFHTTPRequestSerializer serializer];
     manager.responseSerializer = [AFHTTPResponseSerializer serializer];
-    [hud show:YES];
+
+    [hud showAnimated:YES];
+
     NSURLSessionDataTask *dataTask = [manager dataTaskWithRequest:request uploadProgress:nil downloadProgress:^(NSProgress * _Nonnull downloadProgress) {
         dispatch_async(dispatch_get_main_queue(), ^{
             hud.progress = downloadProgress.fractionCompleted;
@@ -257,7 +273,9 @@
         }else{
             NSLog(@"%@",error.localizedDescription);
         }
-        [hud hide:YES];
+
+        [hud hideAnimated:YES];
+
         
     }];
     [dataTask resume];
@@ -270,7 +288,9 @@
     [_plyersDics setObject:player forKey:path];
     AVPlayerLayer *layer = [AVPlayerLayer playerLayerWithPlayer:player];
     layer.frame = self.view.bounds;
-    layer.videoGravity =  AVLayerVideoGravityResizeAspectFill;
+
+    layer.videoGravity =  AVLayerVideoGravityResizeAspect;
+
     [view.layer addSublayer:layer];
     
     NSInteger index = [_paths indexOfObject:path];
@@ -388,6 +408,9 @@
         
     }else if (tapGestureRecognizer.numberOfTapsRequired == 1){
         [self dismissViewControllerAnimated:YES completion:nil];
+
+        //[_currentPlayer play];
+
     }
 }
 
@@ -401,11 +424,11 @@
         if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
             style = UIAlertControllerStyleAlert;
         }
-        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"保存" message:@"保存到相冊" preferredStyle:style];
-        UIAlertAction *cacelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        UIAlertController *alertC = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"保存", nil) message:NSLocalizedString(@"保存到相冊?", nil)  preferredStyle:style];
+        UIAlertAction *cacelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"取消", nil) style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
             
         }];
-        UIAlertAction *submitAction = [UIAlertAction actionWithTitle:@"確定" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        UIAlertAction *submitAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"确定", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
            [self saveFromPath:path];
         }];
         [alertC addAction:cacelAction];
@@ -415,7 +438,7 @@
             
         }];
 #else
-        UIActionSheet *actionSheet = [[UIActionSheet alloc]initWithTitle:@"保存" delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:@"確定" otherButtonTitles:nil];
+        UIActionSheet *actionSheet = [[UIActionSheet alloc]initWithTitle:NSLocalizedString(@"保存", nil) delegate:self cancelButtonTitle:NSLocalizedString(@"取消", nil) destructiveButtonTitle:NSLocalizedString(@"确定", nil) otherButtonTitles:nil];
         actionSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
         [actionSheet showInView:self.view];
 #endif
@@ -458,9 +481,9 @@
         NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
         [library writeVideoAtPathToSavedPhotosAlbum:url completionBlock:^(NSURL *assetURL, NSError *error) {
             if (!error) {
-                [self showAlertWithTitle:@"保存成功!" andMsg:nil];
+                [self showAlertWithTitle:NSLocalizedString(@"保存成功!", nil) andMsg:nil];
             }else{
-                [self showAlertWithTitle:@"保存失敗" andMsg:nil];
+                [self showAlertWithTitle:NSLocalizedString(@"保存失败!", nil) andMsg:nil];
             }
             [_activityIndicatorView stopAnimating];
         }];
@@ -479,20 +502,23 @@
 -(void)showAlertWithTitle:(NSString *)title andMsg:(NSString *)msg {
 #ifdef __IPHONE_8_0
     UIAlertController *alertC = [UIAlertController alertControllerWithTitle:title message:msg preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *cacelAction = [UIAlertAction actionWithTitle:@"確定" style:UIAlertActionStyleCancel handler:nil];
+    UIAlertAction *cacelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"确定", nil) style:UIAlertActionStyleCancel handler:nil];
     [alertC addAction:cacelAction];
     [self presentViewController:alertC animated:YES completion:nil];
 #else
-    UIAlertView *alertV = [[UIAlertView alloc]initWithTitle:title message:msg delegate:nil cancelButtonTitle:@"確定" otherButtonTitles:nil];
+    UIAlertView *alertV = [[UIAlertView alloc]initWithTitle:title message:msg delegate:nil cancelButtonTitle:NSLocalizedString(@"确定", nil) otherButtonTitles:nil];
     [alertV show];
 #endif
 }
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
-
+-(void)dealloc{
+    [[NSNotificationCenter defaultCenter]removeObserver:self];
+}
 
 @end

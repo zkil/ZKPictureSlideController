@@ -17,6 +17,7 @@
 @property(nonatomic)BOOL isRelativePaths;
 @property(nonatomic)BOOL hiddenPage;
 
+
 @property(nonatomic,strong)UIScrollView *containerScrollView;
 
 -(id)initWithPicturePaths:(NSArray *)paths atShowIndex:(NSInteger)index;
