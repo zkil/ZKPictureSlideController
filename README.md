@@ -28,4 +28,4 @@
 ```
 
 ### 效果演示
-![演示]()
+![演示](https://github.com/zkil/ZKPictureSlideController/blob/master/Untitled14.gif?raw=true)
