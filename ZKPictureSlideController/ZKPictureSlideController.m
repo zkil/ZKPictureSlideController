@@ -10,279 +10,320 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <AVKit/AVKit.h>
 #import <AVFoundation/AVFoundation.h>
-#import "UIImage+Additions.h"
-#import "AFNetworking.h"
-#import "MBProgressHUD.h"
+#import <MobileCoreServices/MobileCoreServices.h>
+#import <Masonry/Masonry.h>
+#import <SDWebImage/UIImageView+WebCache.h>
+#import <AFNetworking/AFNetworking.h>
+
 
 @interface ZKPictureSlideController ()<UIActionSheetDelegate>
-{
-    NSMutableArray *_contentViews;
-    NSMutableArray *_contentScrollViews;
-    NSMutableArray *_prgressHUDs;
-    CGFloat lastOffsetX;
-    
-    UIActivityIndicatorView *_activityIndicatorView;
-    
-    NSMutableDictionary *_plyersDics;
-    
-    AVPlayer *_currentPlayer;
-    
-    UIPageControl *_pageControl;
-}
+
+@property (nonatomic,strong) NSMutableArray *contentViews;
+@property (nonatomic,strong) NSMutableDictionary *plyersDics;
+@property (nonatomic,strong) NSMutableArray *contentScrollViews;
+@property (nonatomic,strong) UIPageControl *pageControl;
+@property (nonatomic,strong) AVPlayer *currentPlayer;
+
+
 @end
 
 @implementation ZKPictureSlideController
 
--(id)initWithPicturePaths:(NSArray *)paths atShowIndex:(NSInteger)index{
+- (instancetype)initWithPicturePaths:(NSArray *)paths currentIndex:(NSUInteger)currentIndex{
     if (self = [super init]) {
-        
-        
-        if (index < paths.count) {
-            _paths = paths;
-            _showIndex = index;
+        if (currentIndex < paths.count) {
+            self.paths = paths;
+            self.currentIndex = currentIndex;
         }
     }
     return self;
 }
 
--(id)initWithMessages:(NSArray *)messaegs atShowIndex:(NSInteger)index{
-    if (self = [super init]) {
-        _messages = messaegs;
-           }
-    return self;
-}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    [self initUI];
     
     // Do any additional setup after loading the view.
     NSError *error = nil;
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback
                                            error:&error];
-    
-    if(!error)
-    {
+    if(!error) {
         [[AVAudioSession sharedInstance] setActive:YES error:&error];
-        
         if(error) NSLog(@"Error while activating AudioSession : %@", error);
-    }
-    else
-    {
+    } else {
         NSLog(@"Error while setting category of AudioSession : %@", error);
     }
+}
 
-    
-    
+- (void)initUI {
     self.view.backgroundColor = [UIColor blackColor];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playbackFinished:)name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
-    _contentViews = [NSMutableArray new];
-    _contentScrollViews = [NSMutableArray new];
-    _plyersDics = [NSMutableDictionary new];
-    _prgressHUDs = [NSMutableArray new];
-
     [self createUI];
 }
 
-
-
 -(void)viewDidLayoutSubviews{
     [super viewDidLayoutSubviews];
-    _containerScrollView.frame = self.view.bounds;
-    self.containerScrollView.contentSize = CGSizeMake(self.view.frame.size.width * self.paths.count, self.view.frame.size.height);
     
     [_contentScrollViews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        UIScrollView *contentScrollView = obj;
-        CGRect rect = self.view.bounds;
-        rect.origin.x += idx * self.view.frame.size.width;
-        contentScrollView.zoomScale = 1;
-        contentScrollView.frame = rect;
-        contentScrollView.contentOffset = CGPointZero;
-        
         UIImageView *contentView = _contentViews[idx];
-        NSString *path = self.paths[idx];
-        if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
-            UIImage *image = contentView.image;
-            CGFloat imgWidth = image.size.width;
-            CGFloat imgHeight = image.size.height;
-            
-            if (imgWidth != 0 && imgHeight != 0) {
-                CGFloat ratio = imgWidth/imgHeight;
-                contentView.frame = CGRectMake(0, 0, self.view.frame.size.width,self.view.frame.size.width/ratio);
-            }else{
-                contentView.frame = self.view.bounds;
-            }
-            
-            if (imgWidth > imgHeight || contentView.frame.size.height < self.view.frame.size.height) {
-                contentView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
-            }
-        }else{
-            contentView.frame = self.view.bounds;
-            CALayer *playerLayer = [[contentView.layer sublayers]lastObject];
-            playerLayer.frame = contentView.bounds;
-        }
-        contentScrollView.contentSize = CGSizeMake(contentView.frame.size.width, contentView.frame.size.height);
-        
+        CALayer *playerLayer = [[contentView.layer sublayers] lastObject];
+        playerLayer.frame = self.view.bounds;
     }];
     
-     _pageControl.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 50);
-    _activityIndicatorView.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height/2);
-    _containerScrollView.contentOffset = CGPointMake(_pageControl.currentPage * self.view.frame.size.width, 0);
+//     _pageControl.center = CGPointMake(self.view.frame.size.width/2, self.view.frame.size.height - 50);
+//    _containerScrollView.contentOffset = CGPointMake(_pageControl.currentPage * self.view.frame.size.width, 0);
     
 }
+
 
 
 -(BOOL)shouldAutorotate{
     return YES;
 }
 
--(UIScrollView *)containerScrollView{
-    if (_containerScrollView == nil) {
-        _containerScrollView = [[UIScrollView alloc]init];
-        _containerScrollView.pagingEnabled = YES;
-        _containerScrollView.delegate = self;
-        [self.view addSubview:_containerScrollView];
-    }
-    return _containerScrollView;
-}
+
 
 
 -(void)createUI{
-    CGPoint offset = self.containerScrollView.contentOffset;
-    offset.x = self.view.frame.size.width * self.showIndex;
-    [self.containerScrollView setContentOffset:offset];
-    lastOffsetX = offset.x;
+    [self.containerScrollView removeFromSuperview];
+    [self.contentScrollViews removeAllObjects];
+    [self.contentViews removeAllObjects];
+    [self.plyersDics removeAllObjects];
+    
+    
+    
+    // 1
+    _containerScrollView = [[UIScrollView alloc]init];
+    //_containerScrollView.backgroundColor = [UIColor yellowColor];
+    _containerScrollView.pagingEnabled = YES;
+    _containerScrollView.delegate = self;
+    [self.view addSubview:_containerScrollView];
+    [_containerScrollView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.mas_equalTo(UIEdgeInsetsZero);
+        make.size.mas_equalTo(self.view);
+    }];
+   
+    
+    
+
+    
+    //宽度由内容确定
+    [_containerScrollView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.mas_equalTo(UIEdgeInsetsZero);
+        make.height.mas_equalTo(_containerScrollView.mas_height);
+    }];
+    
+    UIScrollView *lastScrollView = nil;
     for (int i = 0; i < self.paths.count; i++) {
-        NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+        
         NSString *path =  self.paths[i];
-        NSString *url = nil;
-        if (i < self.urls.count) {
-            url = self.urls[i];
-        }
         
-        if (self.isRelativePaths) {
-            path = [documentPath stringByAppendingPathComponent:path];
-        }
-        
+        // 2
         UIScrollView *contentScrollView = [[UIScrollView alloc]init];
+        //contentScrollView.backgroundColor = [UIColor blueColor];
         contentScrollView.tag = 1000 + i;
         contentScrollView.delegate = self;
         contentScrollView.minimumZoomScale = 1;
-        contentScrollView.maximumZoomScale = 3;
+        contentScrollView.maximumZoomScale = 20;
         [self.containerScrollView addSubview:contentScrollView];
+        [self.contentScrollViews addObject:contentScrollView];
         
-        [_contentScrollViews addObject:contentScrollView];
+        if (self.paths.count == 1) {
+            [contentScrollView mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.edges.mas_equalTo(UIEdgeInsetsZero);
+                make.size.mas_equalTo(self.containerScrollView);
+            }];
+        } else {
+            if (i == 0) {
+                [contentScrollView mas_makeConstraints:^(MASConstraintMaker *make) {
+                    make.left.and.top.and.bottom.mas_equalTo(0);
+                    make.size.mas_equalTo(self.containerScrollView);
+                }];
+                
+            } else if (i == self.paths.count - 1) { //最後一個
+                [contentScrollView mas_makeConstraints:^(MASConstraintMaker *make) {
+                    make.top.and.right.and.bottom.mas_equalTo(0);
+                    make.left.mas_equalTo(lastScrollView.mas_right);
+                    make.size.mas_equalTo(self.containerScrollView);
+                }];
+            } else {
+                [contentScrollView mas_makeConstraints:^(MASConstraintMaker *make) {
+                    make.left.mas_equalTo(lastScrollView.mas_right);
+                    make.top.and.bottom.mas_equalTo(0);
+                    make.size.mas_equalTo(self.containerScrollView);
+                }];
+                
+            }
+            
+            lastScrollView = contentScrollView;
+        }
         
-        MBProgressHUD *hud = [[MBProgressHUD alloc]initWithView:contentScrollView];
-        hud.mode = MBProgressHUDModeDeterminate;
-        [_prgressHUDs addObject:hud];
         
+        //双击放大
         UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
         tapGestureRecognizer.numberOfTapsRequired = 2;
         [contentScrollView addGestureRecognizer:tapGestureRecognizer];
         
+        //单击关闭
         UITapGestureRecognizer *dismissTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
         dismissTap.numberOfTapsRequired = 1;
         [self.view addGestureRecognizer:dismissTap];
         
+        //防止手势冲突
         [dismissTap requireGestureRecognizerToFail:tapGestureRecognizer];
         
+        //长按保存
         UILongPressGestureRecognizer *longPressGR = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(showSaveAlert:)];
         [contentScrollView addGestureRecognizer:longPressGR];
         
-        
-        UIImageView *contentView = [UIImageView new];
-        contentView.contentMode = UIViewContentModeScaleAspectFit;
-        contentView.userInteractionEnabled = YES;
-        
-        if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
-            UIImage *image = [UIImage imageWithContentsOfFile:path];
-            contentView.image = image;
-        }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
-            contentView.backgroundColor = [UIColor blackColor];
+        UIView *contentView;
+        if ([path rangeOfString:@"http://"].location != NSNotFound || [path rangeOfString:@"https://"].location != NSNotFound) {
+            //网络文件只能通過後綴判断类型
+            
+            contentView = [UIView new];
+            if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
+                // 3
+                UIImageView *imageView = [UIImageView new];
+                imageView.contentMode = UIViewContentModeScaleAspectFit;
+                imageView.userInteractionEnabled = YES;
+                imageView.backgroundColor = [UIColor blackColor];
+                contentView = imageView;
 
-            //contentView.image = [UIImage getCacheImageWithVideoURL:[NSURL fileURLWithPath:path] error:nil];
+                MBProgressHUD *hud = [[MBProgressHUD alloc] initWithView:contentScrollView];
+                [imageView sd_setImageWithURL:[NSURL URLWithString:path] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                    [hud hideAnimated:YES];
+                }];
+                
+            }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
+                
+                
+                [self requestDownloadVideoWithURL:path atView:contentView];
+            }
+            
+            
+        } else { //本地文件
+            
+            if ([[NSFileManager defaultManager] fileExistsAtPath:path]) { //文件存在
+                NSString *mineType = [self getMIMETypeWithCAPIAtFilePath:path];
+                contentView = [UIView new];
+                
+                if ([mineType rangeOfString:@"image"].location != NSNotFound) { //图片
+                    // 3
+                    UIImageView *imageView = [UIImageView new];
+                    imageView.contentMode = UIViewContentModeScaleAspectFit;
+                    imageView.userInteractionEnabled = YES;
+                    imageView.backgroundColor = [UIColor blackColor];
 
-            if ([[NSFileManager defaultManager]fileExistsAtPath:path]) {
-                [self playerVideoAtView:contentView path:path];
-            }else{
-                [self requestDownloadVideoWithURL:url savePath:path atView:contentScrollView progressView:hud];
+                    UIImage *image = [UIImage imageWithContentsOfFile:path];
+                    imageView.image = image;
+                    
+                    contentView = imageView;
+                    
+                } else if ([mineType rangeOfString:@"video"].location != NSNotFound) { //視頻
+                    
+                    
+                    if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+                        [self playerVideoAtView:contentView path:path];
+                    }
+                }
             }
             
             
         }
-        
-        
+        //contentView.backgroundColor = [UIColor redColor];
         [contentScrollView addSubview:contentView];
-      
-    
         [_contentViews addObject:contentView];
-      
-        
-        
+        [contentView mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.edges.mas_equalTo(UIEdgeInsetsZero);
+            make.size.mas_equalTo(self.containerScrollView);
+        }];
     }
     
+    CGPoint offset = self.containerScrollView.contentOffset;
+    offset.x = self.view.frame.size.width * self.currentIndex;
+    [self.containerScrollView setContentOffset:offset];
+
+
     
-    
-    if (self.paths.count > 1) {
+    if (self.paths.count > 1 && !self.hiddenPage) {
         CGFloat pageWidth = 10;
-        _pageControl = [[UIPageControl alloc]initWithFrame:CGRectMake(0, 0, pageWidth * self.paths.count, pageWidth)];
+        self.pageControl = [[UIPageControl alloc]initWithFrame:CGRectMake(0, 0, pageWidth * self.paths.count, pageWidth)];
 
-        _pageControl.numberOfPages = self.paths.count;
-        _pageControl.currentPage = self.showIndex;
+        self.pageControl.numberOfPages = self.paths.count;
+        self.pageControl.currentPage = self.currentIndex;
         
-        [_pageControl addTarget:self action:@selector(changePage:) forControlEvents:UIControlEventValueChanged];
-        if (!self.hiddenPage) {
-             [self.view addSubview:_pageControl];
-        }
-       
-    }
+        [self.pageControl addTarget:self action:@selector(changePage:) forControlEvents:UIControlEventValueChanged];
+        [self.view addSubview:self.pageControl];
+        [self.pageControl mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.centerX.mas_equalTo(self.view.mas_centerX);
+            make.bottom.mas_equalTo(self.view.mas_bottom).offset(-100);
+        }];
 
-    
-    
-    _activityIndicatorView = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-    _activityIndicatorView.hidesWhenStopped = YES;
-    [self.view addSubview:_activityIndicatorView];
+    }
+   
+
+
     
     [self viewDidLayoutSubviews];
 }
 
+- (NSString *)getMIMETypeWithCAPIAtFilePath:(NSString *)path {
+    if (![[[NSFileManager alloc] init] fileExistsAtPath:path]) {
+        return nil;
+    }
+    CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (__bridge CFStringRef)[path pathExtension], NULL);
+    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass (UTI, kUTTagClassMIMEType);
+    CFRelease(UTI);
+    NSString *type = (__bridge_transfer NSString *)(MIMEType);
+    //CFRelease(MIMEType);
+    if (type == nil) {
+        type = @"application/octet-stream";
+    }
+    return type;
+}
+
 #pragma -mark- requst
 
-- (void)requestDownloadVideoWithURL:(NSString *)urlSting savePath:(NSString *)path atView:(UIView *)view progressView:(MBProgressHUD *)hud {
+- (void)requestDownloadVideoWithURL:(NSString *)urlSting atView:(UIView *)view {
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlSting] cachePolicy:NSURLRequestReturnCacheDataElseLoad timeoutInterval:20];
-    
-    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
-    AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithSessionConfiguration:configuration];
+
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     
     manager.requestSerializer = [AFHTTPRequestSerializer serializer];
     manager.responseSerializer = [AFHTTPResponseSerializer serializer];
 
+    MBProgressHUD *hud = [[MBProgressHUD alloc] initWithView:view];
+    hud.mode = MBProgressHUDModeDeterminate;
+    [view addSubview:hud];
     [hud showAnimated:YES];
+    
+
+    NSString *path = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+    [path stringByAppendingPathComponent:[urlSting lastPathComponent]];
+    [[self.paths mutableCopy] replaceObjectAtIndex:[self.paths indexOfObject:urlSting] withObject:path];
+    
 
     NSURLSessionDataTask *dataTask = [manager dataTaskWithRequest:request uploadProgress:nil downloadProgress:^(NSProgress * _Nonnull downloadProgress) {
         dispatch_async(dispatch_get_main_queue(), ^{
             hud.progress = downloadProgress.fractionCompleted;
         });
     } completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
+        [hud hideAnimated:YES];
         if (error == nil) {
             NSData *data = responseObject;
             if ([data writeToFile:path atomically:YES]) {
                 [self playerVideoAtView:view path:path];
-                
             }
         }else{
             NSLog(@"%@",error.localizedDescription);
         }
-
-        [hud hideAnimated:YES];
-
-        
     }];
     [dataTask resume];
 }
 
 - (void)playerVideoAtView:(UIView *)view path:(NSString *)path{
-    NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
+    NSURL *url = [[NSURL alloc] initFileURLWithPath:path];
     AVPlayerItem *playerItem = [[AVPlayerItem alloc]initWithURL:url];
     AVPlayer *player = [AVPlayer playerWithPlayerItem:playerItem];
     [_plyersDics setObject:player forKey:path];
@@ -294,63 +335,62 @@
     [view.layer addSublayer:layer];
     
     NSInteger index = [_paths indexOfObject:path];
-    if (index == [self currentIndex]) {
+    if (index == self.currentIndex) {
         [player play];
-        _currentPlayer = player;
+        self.currentPlayer = player;
     }
 }
 
-- (NSInteger)currentIndex{
-    return  _containerScrollView.contentOffset.x / self.view.frame.size.width;
-}
+//- (NSInteger)currentIndex{
+//    return  _containerScrollView.contentOffset.x / self.view.frame.size.width;
+//}
 
 #pragma -mark- UIScrollViewDelegate
 
 -(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
-    UIImageView *imageView = nil;
+    
     if (scrollView != _containerScrollView) {
-        
         NSInteger index = scrollView.tag - 1000;
-        NSString *path = self.paths[index];
-        
-        if ([path hasSuffix:@".jpg"] || [path hasSuffix:@".png"]) {
-            imageView = _contentViews[index];
-         
+        UIView *view = self.contentViews[index];
+        if ([view isKindOfClass:[UIImageView class]]) {
+            return view;
         }
-        
     }
-    return imageView;
+    return nil;
 }
 
 
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
     if (scrollView == _containerScrollView) {
-        if (lastOffsetX != _containerScrollView.contentOffset.x) {
-            NSInteger lastIndex = lastOffsetX / self.view.frame.size.width;
-            NSInteger currentIndex = _containerScrollView.contentOffset.x / self.view.frame.size.width;
+        NSInteger lastIndex = self.currentIndex;
+        NSInteger currentIndex = _containerScrollView.contentOffset.x / self.view.frame.size.width;
+        if (lastIndex != currentIndex) {
             
             NSString *lastPath = self.paths[lastIndex];
-            NSString *currentPath = self.paths[currentIndex];
-            
-            if([lastPath hasSuffix:@".jpg"] || [lastPath hasSuffix:@".png"]) {
-                UIScrollView *contentScrollView = _contentScrollViews[lastIndex];
-                [contentScrollView setZoomScale:1];
-                contentScrollView.contentOffset = CGPointZero;
-            }else if([lastPath hasSuffix:@".mov"] || [lastPath hasSuffix:@".MOV"] || [lastPath hasSuffix:@".mp4"] || [lastPath hasSuffix:@".MP4"]){
+            UIScrollView *lastScrollView = self.contentScrollViews[lastIndex];
+            UIView *lastContentView = self.contentViews[lastIndex];
+            if ([lastContentView isKindOfClass:[UIImageView class]]) {
+                [lastScrollView setZoomScale:1];
+                lastScrollView.contentOffset = CGPointZero;
+
+            } else {
                 AVPlayer *player = (AVPlayer *)_plyersDics[lastPath];
                 [player pause];
             }
             
-            if ([currentPath hasSuffix:@".mov"] || [currentPath hasSuffix:@".MOV"] || [currentPath hasSuffix:@".mp4"] || [currentPath hasSuffix:@".MP4"]) {
-                AVPlayer *player = (AVPlayer *)_plyersDics[currentPath];
+            
+            NSString *currentPath = self.paths[currentIndex];
+            UIView *currentContentView = self.contentViews[currentIndex];
+            
+            if ([currentContentView isKindOfClass:[UIImageView class]]) {
+                self.currentPlayer = nil;
+            } else {
+                AVPlayer *player = (AVPlayer *)self.plyersDics[currentPath];
                 [player play];
-                _currentPlayer = player;
-            }else{
-                _currentPlayer = nil;
+                self.currentPlayer = player;
             }
             
-            _pageControl.currentPage = currentIndex;
-            lastOffsetX = _containerScrollView.contentOffset.x;
+            self.currentIndex = currentIndex;
         }
     }
 
@@ -360,36 +400,37 @@
 
 -(void)changePage:(UIPageControl *)pageControl{
     _containerScrollView.contentOffset = CGPointMake(pageControl.currentPage * self.view.frame.size.width, 0);
-    if (lastOffsetX != _containerScrollView.contentOffset.x) {
-        NSInteger lastIndex = lastOffsetX / self.view.frame.size.width;
-        NSInteger currentIndex = _containerScrollView.contentOffset.x / self.view.frame.size.width;
+    NSInteger lastIndex = self.currentIndex;
+    NSInteger currentIndex = _containerScrollView.contentOffset.x / self.view.frame.size.width;
+    if (lastIndex != currentIndex) {
         
         NSString *lastPath = self.paths[lastIndex];
-        NSString *currentPath = self.paths[currentIndex];
-        
-        if([lastPath hasSuffix:@".jpg"] || [lastPath hasSuffix:@".png"]) {
-            UIScrollView *contentScrollView = _contentScrollViews[lastIndex];
-            [contentScrollView setZoomScale:1];
-            contentScrollView.contentOffset = CGPointZero;
-        }else if([lastPath hasSuffix:@".mov"] || [lastPath hasSuffix:@".MOV"] || [lastPath hasSuffix:@".mp4"] || [lastPath hasSuffix:@".MP4"]){
+        UIScrollView *lastScrollView = self.contentScrollViews[lastIndex];
+        UIView *lastContentView = self.contentViews[lastIndex];
+        if ([lastContentView isKindOfClass:[UIImageView class]]) {
+            [lastScrollView setZoomScale:1];
+            lastScrollView.contentOffset = CGPointZero;
+            
+        } else {
             AVPlayer *player = (AVPlayer *)_plyersDics[lastPath];
             [player pause];
         }
         
-        if ([currentPath hasSuffix:@".mov"] || [currentPath hasSuffix:@".MOV"] || [currentPath hasSuffix:@".mp4"] || [currentPath hasSuffix:@".MP4"]) {
-            AVPlayer *player = (AVPlayer *)_plyersDics[currentPath];
+        
+        NSString *currentPath = self.paths[currentIndex];
+        UIView *currentContentView = self.contentViews[currentIndex];
+        
+        if ([currentContentView isKindOfClass:[UIImageView class]]) {
+            [self.currentPlayer pause];
+            self.currentPlayer = nil;
+        } else {
+            AVPlayer *player = (AVPlayer *)self.plyersDics[currentPath];
             [player play];
-            _currentPlayer = player;
-        }else{
-            _currentPlayer = nil;
+            self.currentPlayer = player;
         }
         
-        _pageControl.currentPage = currentIndex;
-        
-        lastOffsetX = _containerScrollView.contentOffset.x;
+        self.currentIndex = currentIndex;
     }
-    
-    
 }
 
 #pragma -mark- action
@@ -419,7 +460,7 @@
     if (longPressGR.state == UIGestureRecognizerStateEnded) {
 #ifdef __IPHONE_8_0
         NSInteger Index = longPressGR.view.tag - 1000;
-        NSString *path = _paths[Index];
+        NSString *path = self.paths[Index];
         UIAlertControllerStyle style = UIAlertControllerStyleActionSheet;
         if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
             style = UIAlertControllerStyleAlert;
@@ -429,7 +470,7 @@
             
         }];
         UIAlertAction *submitAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"确定", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-           [self saveFromPath:path];
+        [self saveFromPath:path];
         }];
         [alertC addAction:cacelAction];
         [alertC addAction:submitAction];
@@ -454,17 +495,22 @@
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex{
     if (buttonIndex == 0) {
-        NSString *path = _paths[[self currentIndex]];
+        NSString *path = self.paths[[self currentIndex]];
         [self saveFromPath:path];
     }
 }
 
 #pragma -mark-保存到相册
 
--(void)saveFromPath:(NSString *)path{
-    [_activityIndicatorView startAnimating];
+- (void)saveFromPath:(NSString *)path{
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        return;
+    }
+
+    [self.hud showAnimated:YES];
     ALAssetsLibrary *library = [[ALAssetsLibrary alloc]init];
-    if ([path hasSuffix:@".png"] || [path hasSuffix:@".jpg"]) {
+    NSString *mineType = [self getMIMETypeWithCAPIAtFilePath:path];
+    if ([mineType rangeOfString:@"image"].location != NSNotFound) { //图片
         UIImage *image = [UIImage imageWithContentsOfFile:path];
         [library writeImageToSavedPhotosAlbum:image.CGImage orientation:(ALAssetOrientation)image.imageOrientation completionBlock:^(NSURL *assetURL, NSError *error) {
             
@@ -472,12 +518,13 @@
                 [self showAlertWithTitle:@"保存成功!" andMsg:nil];
             }else{
                 [self showAlertWithTitle:@"保存失敗" andMsg:nil];
-        
+                
             }
-            [_activityIndicatorView stopAnimating];
+            [self.hud hideAnimated:YES];
         }];
         
-    }else if([path hasSuffix:@".mov"] || [path hasSuffix:@".MOV"] || [path hasSuffix:@".mp4"] || [path hasSuffix:@".MP4"]){
+    } else if ([mineType rangeOfString:@"video"].location != NSNotFound) { //視頻
+        
         NSURL *url = [[NSURL alloc]initFileURLWithPath:path];
         [library writeVideoAtPathToSavedPhotosAlbum:url completionBlock:^(NSURL *assetURL, NSError *error) {
             if (!error) {
@@ -485,18 +532,19 @@
             }else{
                 [self showAlertWithTitle:NSLocalizedString(@"保存失败!", nil) andMsg:nil];
             }
-            [_activityIndicatorView stopAnimating];
+            [self.hud hideAnimated:YES];
         }];
     }
-    
 }
 
 #pragma -mark- noyofication
 
--(void)playbackFinished:(NSNotification *)notification
-{
-    [_currentPlayer seekToTime:CMTimeMake(0, 1)];
-    [_currentPlayer play];
+-(void)playbackFinished:(NSNotification *)notification {
+    if (notification.object == self.currentPlayer.currentItem) {
+        [self.currentPlayer seekToTime:kCMTimeZero];
+        [self.currentPlayer play];
+    }
+    
 }
 
 -(void)showAlertWithTitle:(NSString *)title andMsg:(NSString *)msg {
@@ -509,6 +557,52 @@
     UIAlertView *alertV = [[UIAlertView alloc]initWithTitle:title message:msg delegate:nil cancelButtonTitle:NSLocalizedString(@"确定", nil) otherButtonTitles:nil];
     [alertV show];
 #endif
+}
+
+#pragma -mark- getter
+
+- (NSMutableArray *)contentViews {
+    if (_contentViews == nil) {
+        _contentViews = [NSMutableArray new];
+    }
+    return _contentViews;
+}
+
+- (NSMutableArray *)contentScrollViews {
+    if (_contentScrollViews == nil) {
+        _contentScrollViews = [NSMutableArray new];
+    }
+    return _contentScrollViews;
+}
+
+- (NSMutableDictionary *)plyersDics {
+    if (_plyersDics == nil) {
+        _plyersDics = [NSMutableDictionary new];
+    }
+    return _plyersDics;
+}
+
+- (MBProgressHUD *)hud {
+    if (_hud == nil) {
+        _hud = [[MBProgressHUD alloc] initWithView:self.view];
+        [self.view addSubview:_hud];
+    }
+    [self.view bringSubviewToFront:_hud];
+    return _hud;
+}
+
+- (void)setCurrentPlayer:(AVPlayer *)currentPlayer {
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:_currentPlayer.currentItem];
+    _currentPlayer = currentPlayer;
+    if (currentPlayer != nil) {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playbackFinished:)name:AVPlayerItemDidPlayToEndTimeNotification object:currentPlayer.currentItem];
+    }
+}
+
+- (void)setCurrentIndex:(NSUInteger)currentIndex {
+    _currentIndex = currentIndex;
+    self.pageControl.currentPage = currentIndex;
 }
 
 

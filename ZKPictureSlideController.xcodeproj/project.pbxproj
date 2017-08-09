@@ -20,13 +20,12 @@
 		9B2F3C281CA8E8340057403B /* 3.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9B2F3C231CA8E8340057403B /* 3.jpg */; };
 		9B2F3C291CA8E8340057403B /* 4.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9B2F3C241CA8E8340057403B /* 4.jpg */; };
 		9B2F3C2C1CA8E9CF0057403B /* 0.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9B2F3C2B1CA8E9CF0057403B /* 0.jpg */; };
-		9B6D48E51CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B6D48E21CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m */; };
-		9B6D48E61CE4326E00BCC38D /* UIView+SDAutoLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B6D48E41CE4326E00BCC38D /* UIView+SDAutoLayout.m */; };
 		9BA7BE841CB7C1880060C0C7 /* 0.mov in Resources */ = {isa = PBXBuildFile; fileRef = 9BA7BE801CB7C1870060C0C7 /* 0.mov */; };
 		9BA7BE851CB7C1880060C0C7 /* 1.mov in Resources */ = {isa = PBXBuildFile; fileRef = 9BA7BE811CB7C1870060C0C7 /* 1.mov */; };
 		9BA7BE861CB7C1880060C0C7 /* 2.mov in Resources */ = {isa = PBXBuildFile; fileRef = 9BA7BE821CB7C1880060C0C7 /* 2.mov */; };
 		9BA7BE871CB7C1880060C0C7 /* 3.mov in Resources */ = {isa = PBXBuildFile; fileRef = 9BA7BE831CB7C1880060C0C7 /* 3.mov */; };
 		9BA7BE891CB7C2DA0060C0C7 /* 4.mov in Resources */ = {isa = PBXBuildFile; fileRef = 9BA7BE881CB7C2DA0060C0C7 /* 4.mov */; };
+		F9FD7D7675C2FA0D0C937404 /* Pods_ZKPictureSlideController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A61F5A8B0F6CFE9D43677520 /* Pods_ZKPictureSlideController.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +39,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7EC68189DDC99D599D2C6FFE /* Pods-ZKPictureSlideController.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZKPictureSlideController.release.xcconfig"; path = "Pods/Target Support Files/Pods-ZKPictureSlideController/Pods-ZKPictureSlideController.release.xcconfig"; sourceTree = "<group>"; };
 		9B2F3BF41CA8D35F0057403B /* ZKPictureSlideController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZKPictureSlideController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B2F3BF81CA8D35F0057403B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9B2F3BF91CA8D35F0057403B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -60,15 +60,13 @@
 		9B2F3C231CA8E8340057403B /* 3.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 3.jpg; sourceTree = "<group>"; };
 		9B2F3C241CA8E8340057403B /* 4.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 4.jpg; sourceTree = "<group>"; };
 		9B2F3C2B1CA8E9CF0057403B /* 0.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 0.jpg; sourceTree = "<group>"; };
-		9B6D48E11CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UITableView+SDAutoTableViewCellHeight.h"; sourceTree = "<group>"; };
-		9B6D48E21CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UITableView+SDAutoTableViewCellHeight.m"; sourceTree = "<group>"; };
-		9B6D48E31CE4326E00BCC38D /* UIView+SDAutoLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+SDAutoLayout.h"; sourceTree = "<group>"; };
-		9B6D48E41CE4326E00BCC38D /* UIView+SDAutoLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+SDAutoLayout.m"; sourceTree = "<group>"; };
 		9BA7BE801CB7C1870060C0C7 /* 0.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = 0.mov; sourceTree = "<group>"; };
 		9BA7BE811CB7C1870060C0C7 /* 1.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = 1.mov; sourceTree = "<group>"; };
 		9BA7BE821CB7C1880060C0C7 /* 2.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = 2.mov; sourceTree = "<group>"; };
 		9BA7BE831CB7C1880060C0C7 /* 3.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = 3.mov; sourceTree = "<group>"; };
 		9BA7BE881CB7C2DA0060C0C7 /* 4.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = 4.mov; sourceTree = "<group>"; };
+		A4F7CE4BF86593ED2A108C0F /* Pods-ZKPictureSlideController.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZKPictureSlideController.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ZKPictureSlideController/Pods-ZKPictureSlideController.debug.xcconfig"; sourceTree = "<group>"; };
+		A61F5A8B0F6CFE9D43677520 /* Pods_ZKPictureSlideController.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ZKPictureSlideController.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +74,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F9FD7D7675C2FA0D0C937404 /* Pods_ZKPictureSlideController.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,12 +88,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		06EB6501C3944A6F7812F738 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A61F5A8B0F6CFE9D43677520 /* Pods_ZKPictureSlideController.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5B3494785FE1921FE54F63A0 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				A4F7CE4BF86593ED2A108C0F /* Pods-ZKPictureSlideController.debug.xcconfig */,
+				7EC68189DDC99D599D2C6FFE /* Pods-ZKPictureSlideController.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		9B2F3BEB1CA8D35F0057403B = {
 			isa = PBXGroup;
 			children = (
 				9B2F3BF61CA8D35F0057403B /* ZKPictureSlideController */,
 				9B2F3C101CA8D35F0057403B /* ZKPictureSlideControllerTests */,
 				9B2F3BF51CA8D35F0057403B /* Products */,
+				5B3494785FE1921FE54F63A0 /* Pods */,
+				06EB6501C3944A6F7812F738 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -110,7 +128,6 @@
 		9B2F3BF61CA8D35F0057403B /* ZKPictureSlideController */ = {
 			isa = PBXGroup;
 			children = (
-				9B6D48E01CE4326E00BCC38D /* SDAutoLayout */,
 				9B2F3BFB1CA8D35F0057403B /* AppDelegate.h */,
 				9B2F3BFC1CA8D35F0057403B /* AppDelegate.m */,
 				9B2F3BFE1CA8D35F0057403B /* ViewController.h */,
@@ -169,17 +186,6 @@
 			path = resouse;
 			sourceTree = "<group>";
 		};
-		9B6D48E01CE4326E00BCC38D /* SDAutoLayout */ = {
-			isa = PBXGroup;
-			children = (
-				9B6D48E11CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.h */,
-				9B6D48E21CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m */,
-				9B6D48E31CE4326E00BCC38D /* UIView+SDAutoLayout.h */,
-				9B6D48E41CE4326E00BCC38D /* UIView+SDAutoLayout.m */,
-			);
-			path = SDAutoLayout;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -187,9 +193,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9B2F3C171CA8D35F0057403B /* Build configuration list for PBXNativeTarget "ZKPictureSlideController" */;
 			buildPhases = (
+				6B8B867FE0FF6F493BF5E3A4 /* [CP] Check Pods Manifest.lock */,
 				9B2F3BF01CA8D35F0057403B /* Sources */,
 				9B2F3BF11CA8D35F0057403B /* Frameworks */,
 				9B2F3BF21CA8D35F0057403B /* Resources */,
+				CA8FB7C683AD0E93E4A3E736 /* [CP] Embed Pods Frameworks */,
+				EF00B5965BB62FEA6A2E7B8F /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -224,11 +233,12 @@
 		9B2F3BEC1CA8D35F0057403B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0640;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = sanchun;
 				TargetAttributes = {
 					9B2F3BF31CA8D35F0057403B = {
 						CreatedOnToolsVersion = 6.4;
+						DevelopmentTeam = C2Y8Q3RAAW;
 					};
 					9B2F3C0C1CA8D35F0057403B = {
 						CreatedOnToolsVersion = 6.4;
@@ -285,6 +295,54 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		6B8B867FE0FF6F493BF5E3A4 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		CA8FB7C683AD0E93E4A3E736 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ZKPictureSlideController/Pods-ZKPictureSlideController-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EF00B5965BB62FEA6A2E7B8F /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ZKPictureSlideController/Pods-ZKPictureSlideController-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		9B2F3BF01CA8D35F0057403B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -292,10 +350,8 @@
 			files = (
 				9B2F3C001CA8D35F0057403B /* ViewController.m in Sources */,
 				9B2F3BFD1CA8D35F0057403B /* AppDelegate.m in Sources */,
-				9B6D48E61CE4326E00BCC38D /* UIView+SDAutoLayout.m in Sources */,
 				9B2F3BFA1CA8D35F0057403B /* main.m in Sources */,
 				9B2F3C1F1CA8D3750057403B /* ZKPictureSlideController.m in Sources */,
-				9B6D48E51CE4326E00BCC38D /* UITableView+SDAutoTableViewCellHeight.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,14 +406,17 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -394,8 +453,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -421,22 +482,28 @@
 		};
 		9B2F3C181CA8D35F0057403B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A4F7CE4BF86593ED2A108C0F /* Pods-ZKPictureSlideController.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = C2Y8Q3RAAW;
 				INFOPLIST_FILE = ZKPictureSlideController/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "zk.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		9B2F3C191CA8D35F0057403B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7EC68189DDC99D599D2C6FFE /* Pods-ZKPictureSlideController.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = C2Y8Q3RAAW;
 				INFOPLIST_FILE = ZKPictureSlideController/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "zk.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -455,6 +522,7 @@
 				);
 				INFOPLIST_FILE = ZKPictureSlideControllerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "zk.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ZKPictureSlideController.app/ZKPictureSlideController";
 			};
@@ -470,6 +538,7 @@
 				);
 				INFOPLIST_FILE = ZKPictureSlideControllerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "zk.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ZKPictureSlideController.app/ZKPictureSlideController";
 			};

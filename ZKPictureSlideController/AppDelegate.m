@@ -27,7 +27,7 @@
     
     
     
-    ZKPictureSlideController *pictureSlideC = [[ZKPictureSlideController alloc]initWithPicturePaths:paths atShowIndex:0];
+    ZKPictureSlideController *pictureSlideC = [[ZKPictureSlideController alloc]initWithPicturePaths:paths currentIndex:0];
     
     
     self.window.rootViewController = pictureSlideC;
